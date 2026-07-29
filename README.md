@@ -1,0 +1,94 @@
+nparLD
+================
+
+# nparLD
+
+`nparLD` provides nonparametric methods for the analysis of longitudinal
+and repeated-measures data in factorial experiments.
+
+`nparLD` provides nonparametric methods for the analysis of longitudinal
+and repeated-measures data in factorial experiments. The package
+implements procedures for hypotheses in marginal distribution functions
+and in unweighted relative marginal effects. It supports crossed
+factorial designs, missing observations, dependent replicate
+measurements, rank- and pseudo-rank-based inference, Wald-type and
+ANOVA-type statistics, multiple contrast procedures, and simultaneous
+confidence intervals.
+
+## Installation
+
+You can install the development version locally with:
+
+``` r
+devtools::install()
+```
+
+## Basic example
+
+``` r
+library(nparLD)
+
+set.seed(123)
+
+T <- 4
+n <- c(10, 10, 10)
+N <- sum(T * n)
+
+y <- rnorm(N)
+times <- c(rep(1:T, n[1]), rep(1:T, n[2]), rep(1:T, n[3]))
+grp <- c(rep(1, n[1] * T), rep(2, n[2] * T), rep(3, n[3] * T))
+subjekte <- c(
+  sort(rep(1:n[1], T)),
+  sort(rep((n[1] + 1):(n[1] + n[2]), T)),
+  sort(rep((n[1] + n[2] + 1):(n[1] + n[2] + n[3]), T))
+)
+
+datensatz <- data.frame(times, grp, subjekte, y)
+
+fit <- nparLD(
+  y ~ grp * times,
+  data = datensatz,
+  subject = "subjekte",
+  hypothesis = "H0p",
+  contrast = list("grp:times")
+)
+
+fit
+```
+
+## Hypothesis types
+
+Use `hypothesis = "H0F"` to test hypotheses in marginal distribution
+functions. These tests compare entire marginal distributions.
+
+Use `hypothesis = "H0p"` to test hypotheses in unweighted relative
+marginal effects. These effects describe the relative position of each
+marginal distribution with respect to a common unweighted reference
+distribution and are useful for interpretation, contrasts, simultaneous
+confidence intervals, and plots.
+
+## Dependent replicates
+
+Dependent replicate measurements can be specified with the `replicate`
+argument.
+
+``` r
+datensatz2 <- datensatz[rep(seq_len(nrow(datensatz)), each = 3), ]
+datensatz2$rep <- rep(1:3, times = nrow(datensatz))
+datensatz2$y <- rnorm(nrow(datensatz2))
+
+fit_rep <- nparLD(
+  y ~ grp * times,
+  data = datensatz2,
+  subject = "subjekte",
+  replicate = "rep",
+  hypothesis = "H0p",
+  cell.weights = "subjects"
+)
+
+fit_rep
+```
+
+For relative marginal effects, `cell.weights = "subjects"` targets a
+typical subject-condition cell, while `cell.weights = "observations"`
+targets a typical replicate observation.
