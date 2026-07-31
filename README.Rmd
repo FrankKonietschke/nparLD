@@ -95,4 +95,38 @@ subject-condition cell, while `cell.weights = "observations"` targets a typical
 replicate observation.
 
 
+## Classical longitudinal designs
+
+Earlier versions of `nparLD` used design-specific functions such as `ld.f1()`,
+`f1.ld.f1()`, or `f2.ld.f1()`. In the redesigned package, these designs are
+specified through one general formula interface.
+
+Typical examples are:
+
+| Classical design | Formula in the redesigned interface | Example |
+|---|---|---|
+| `LD-F1` | `resp ~ time` | one repeated-measures factor |
+| `F1-LD-F1` | `resp ~ group * time` | one whole-plot and one repeated-measures factor |
+| `LD-F2` | `resp ~ time1 * time2` | two repeated-measures factors |
+| `F1-LD-F2` | `resp ~ group * time1 * time2` | one whole-plot and two repeated-measures factors |
+| `F2-LD-F1` | `resp ~ group1 * group2 * time` | two whole-plot and one repeated-measures factor |
+
+For example, the shoulder data correspond to an `F2-LD-F1` design:
+
+```r
+data(shoulder)
+
+fit <- nparLD(
+  resp ~ group1 * group2 * time,
+  data = shoulder,
+  subject = "subject",
+  hypothesis = "H0p",
+  contrast = list("group1:time")
+)
+
+fit
+plot(fit)
+plot(fit$MCTP)
+```
+
 

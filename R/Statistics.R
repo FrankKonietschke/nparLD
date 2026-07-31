@@ -114,13 +114,38 @@
         CI.method = CI.method
       )
 
-      df$Lower <- CI[,1]
-      df$Upper <- CI[,2]
+      df$Lower <- CI[, 1]
+      df$Upper <- CI[, 2]
+    }
+    # attach factor-level names when possible
+    rn <- NULL
+    fac_name <- Output.names[i]
+
+    if (!is.null(fac_name)) {
+
+      if (!is.null(names.levels[[fac_name]])) {
+        rn <- names.levels[[fac_name]]
+      } else if (grepl(":", fac_name, fixed = TRUE)) {
+        facs <- strsplit(fac_name, ":", fixed = TRUE)[[1]]
+
+        if (all(facs %in% names(names.levels))) {
+          levs <- names.levels[facs]
+          rn <- do.call(
+            interaction,
+            c(
+              expand.grid(levs, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE),
+              list(sep = ":")
+            )
+          )
+          rn <- as.character(rn)
+        }
+      }
     }
 
-    # attach factor level names
-    if(!is.null(names.levels[[Output.names[i]]])) {
-      rownames(df) <- names.levels[[Output.names[i]]]
+    if (!is.null(rn) && length(rn) == nrow(df)) {
+      rownames(df) <- rn
+    } else {
+      rownames(df) <- seq_len(nrow(df))
     }
 
     descriptives[[i]] <- df
@@ -128,8 +153,11 @@
 
   names(descriptives) <- Output.names
   class(descriptives) <- "nparld_factorinfo"
-descriptives
+
+  descriptives
 }
+
+
 
 
 #*******************************************************************************

@@ -1,0 +1,162 @@
+
+---
+title: "Nonparametric Longitudinal Data Analysis with nparLD"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Nonparametric Longitudinal Data Analysis with nparLD}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+```{r setup}
+library(nparLD)
+```
+
+
+## Introduction
+
+The `nparLD` package provides nonparametric methods for longitudinal and
+repeated-measures data in factorial experiments. It implements inference for
+hypotheses in marginal distribution functions and in unweighted relative
+marginal effects. The redesigned interface uses a general formula syntax and
+supports crossed factorial designs, incomplete observations, dependent
+replicates, multiple contrast procedures, and simultaneous confidence intervals.
+
+## Classical designs and the formula interface
+
+Earlier versions of `nparLD` used design-specific functions for common
+longitudinal layouts. In the redesigned version, these designs are specified
+through the same formula interface.
+
+| Classical design | Formula                         |
+| ---------------- | ------------------------------- |
+| `LD-F1`          | `resp ~ time`                   |
+| `F1-LD-F1`       | `resp ~ group * time`           |
+| `LD-F2`          | `resp ~ time1 * time2`          |
+| `F1-LD-F2`       | `resp ~ group * time1 * time2`  |
+| `F2-LD-F1`       | `resp ~ group1 * group2 * time` |
+
+Factor ordering is controlled by setting factor levels in the input data before
+calling `nparLD()`.
+
+## Hypotheses
+
+The argument `hypothesis = "H0F"` specifies hypotheses in marginal distribution
+functions. These hypotheses compare complete marginal distributions and may
+detect differences in location, scale, skewness, or other distributional
+features.
+
+The argument `hypothesis = "H0p"` specifies hypotheses in unweighted relative
+marginal effects. These effects describe the relative position of each marginal
+distribution with respect to a common unweighted reference distribution and are
+useful for contrasts, simultaneous confidence intervals, and plots.
+
+## A one-factor longitudinal example
+
+```{r dental-example}
+data(dental)
+
+fit_dental <- nparLD(
+  resp ~ time,
+  data = dental,
+  subject = "subject",
+  hypothesis = "H0p"
+)
+
+fit_dental
+```
+
+## A factorial longitudinal example
+
+```{r shoulder-example}
+data(shoulder)
+
+fit_shoulder <- nparLD(
+  resp ~ group1 * group2 * time,
+  data = shoulder,
+  subject = "subject",
+  hypothesis = "H0p",
+  contrast = list("group1:time")
+)
+
+fit_shoulder
+plot(fit_shoulder)
+plot(fit_shoulder$MCTP)
+```
+
+## Missing observations
+
+```{r missing-example}
+set.seed(123)
+
+dat_miss <- dental
+dat_miss$resp[c(2, 7, 12)] <- NA
+
+fit_miss <- nparLD(
+  resp ~ time,
+  data = dat_miss,
+  subject = "subject",
+  hypothesis = "H0p"
+)
+
+fit_miss
+```
+
+## Dependent replicate measurements
+
+```{r replicate-example}
+set.seed(123)
+
+T <- 4
+n <- c(10, 10, 10)
+N <- sum(T * n)
+
+dat <- data.frame(
+  y = rnorm(N),
+  time = c(rep(1:T, n[1]), rep(1:T, n[2]), rep(1:T, n[3])),
+  group = c(rep(1, n[1] * T), rep(2, n[2] * T), rep(3, n[3] * T)),
+  subject = c(
+    sort(rep(1:n[1], T)),
+    sort(rep((n[1] + 1):(n[1] + n[2]), T)),
+    sort(rep((n[1] + n[2] + 1):(n[1] + n[2] + n[3]), T))
+  )
+)
+
+dat_rep <- dat[rep(seq_len(nrow(dat)), each = 3), ]
+dat_rep$replicate <- rep(1:3, times = nrow(dat))
+dat_rep$y <- rnorm(nrow(dat_rep))
+
+fit_rep_subjects <- nparLD(
+  y ~ group * time,
+  data = dat_rep,
+  subject = "subject",
+  replicate = "replicate",
+  hypothesis = "H0p",
+  cell.weights = "subjects"
+)
+
+fit_rep_observations <- nparLD(
+  y ~ group * time,
+  data = dat_rep,
+  subject = "subject",
+  replicate = "replicate",
+  hypothesis = "H0p",
+  cell.weights = "observations"
+)
+
+fit_rep_subjects
+fit_rep_observations
+```
+
+For relative marginal effects, `cell.weights = "subjects"` targets a typical
+subject-condition cell, while `cell.weights = "observations"` targets a typical
+replicate observation.
+

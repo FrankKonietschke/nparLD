@@ -336,7 +336,7 @@ plot.nparld_mctp <- function(x,
 
   labs <- rownames(res)
   if (is.null(labs)) {
-    labs <- paste("Contrast", seq_len(nrow(res)))
+    labs <- paste("C", seq_len(nrow(res)))
   }
 
   k <- length(est)
