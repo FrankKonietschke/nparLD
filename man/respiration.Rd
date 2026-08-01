@@ -30,6 +30,7 @@ fit <- nparLD(resp ~ center * treatment * time,
               hypothesis = "H0F")
 fit
 
+\dontrun{
 fit <- nparLD(resp ~ center * treatment * time,
               data = respiration,
               subject = "patient",
@@ -38,6 +39,7 @@ fit <- nparLD(resp ~ center * treatment * time,
 fit
 plot(fit)
 plot(fit$MCTP)
+}
 
 }
 \keyword{datasets}

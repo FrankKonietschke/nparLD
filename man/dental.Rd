@@ -25,12 +25,15 @@ data(dental)
 
 dental$time <- factor(dental$time)
 
+\dontrun{
 fit <- nparLD(resp ~ time,
               data = dental,
               subject = "subject",
               hypothesis = "H0F")
 fit
+}
 
+\dontrun{
 fit <- nparLD(resp ~ time,
               data = dental,
               subject = "subject",
@@ -39,6 +42,7 @@ fit <- nparLD(resp ~ time,
 fit
 plot(fit)
 plot(fit$MCTP)
+}
 
 }
 \keyword{datasets}

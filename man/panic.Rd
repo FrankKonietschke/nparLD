@@ -23,12 +23,15 @@ ordinal responses.
 \examples{
 data(panic)
 
+\dontrun{
 fit <- nparLD(resp ~ time,
               data = panic,
               subject = "subject",
               hypothesis = "H0F", contrast =list("time", "Dunnett"))
 fit
+}
 
+\dontrun{
 fit <- nparLD(resp ~ time,
               data = panic,
               subject = "subject",
@@ -37,6 +40,7 @@ fit <- nparLD(resp ~ time,
 fit
 plot(fit)
 plot(fit$MCTP)
+}
 
 }
 \keyword{datasets}

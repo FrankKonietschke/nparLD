@@ -24,12 +24,15 @@ compares treatment groups and includes two repeated-measures factors.
 \examples{
 data(edema)
 
+\dontrun{
 fit <- nparLD(resp ~ group * time1 * time2,
               data = edema,
               subject = "subject",
               hypothesis = "H0F")
 fit
+}
 
+\dontrun{
 fit <- nparLD(resp ~ group * time1 * time2,
               data = edema,
               subject = "subject",
@@ -39,6 +42,7 @@ fit <- nparLD(resp ~ group * time1 * time2,
 fit
 plot(fit)
 plot(fit$MCTP)
+}
 
 }
 \keyword{datasets}

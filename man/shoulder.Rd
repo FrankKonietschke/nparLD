@@ -24,12 +24,15 @@ study includes treatment group, gender group, and repeated pain measurements.
 \examples{
 data(shoulder)
 
+\dontrun{
 fit <- nparLD(resp ~ group1 * group2 * time,
               data = shoulder,
               subject = "subject",
               hypothesis = "H0F")
 fit
+}
 
+\dontrun{
 fit <- nparLD(resp ~ group1 * group2 * time,
               data = shoulder,
               subject = "subject",
@@ -39,6 +42,7 @@ fit <- nparLD(resp ~ group1 * group2 * time,
 fit
 plot(fit)
 plot(fit$MCTP)
+}
 
 }
 \keyword{datasets}

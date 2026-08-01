@@ -23,12 +23,16 @@ illustrate an ordinal longitudinal response in several groups.
 \examples{
 data(tree)
 
+\dontrun{
 fit <- nparLD(resp ~ group * time,
               data = tree,
               subject = "subject",
               hypothesis = "H0F")
 fit
+}
 
+
+\dontrun{
 fit <- nparLD(resp ~ group * time,
               data = tree,
               subject = "subject",
@@ -37,6 +41,7 @@ fit <- nparLD(resp ~ group * time,
 fit
 plot(fit)
 plot(fit$MCTP)
+}
 
 }
 \keyword{datasets}
