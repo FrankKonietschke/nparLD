@@ -4,9 +4,6 @@ nparLD
 # nparLD
 
 `nparLD` provides nonparametric methods for the analysis of longitudinal
-and repeated-measures data in factorial experiments.
-
-`nparLD` provides nonparametric methods for the analysis of longitudinal
 and repeated-measures data in factorial experiments. The package
 implements procedures for hypotheses in marginal distribution functions
 and in unweighted relative marginal effects. It supports crossed
@@ -37,29 +34,88 @@ N <- sum(T * n)
 y <- rnorm(N)
 times <- c(rep(1:T, n[1]), rep(1:T, n[2]), rep(1:T, n[3]))
 grp <- c(rep(1, n[1] * T), rep(2, n[2] * T), rep(3, n[3] * T))
-subjekte <- c(
+subjects <- c(
   sort(rep(1:n[1], T)),
   sort(rep((n[1] + 1):(n[1] + n[2]), T)),
   sort(rep((n[1] + n[2] + 1):(n[1] + n[2] + n[3]), T))
 )
 
-datensatz <- data.frame(times, grp, subjekte, y)
+data <- data.frame(times, grp, subjects, y)
 
 fit <- nparLD(
   y ~ grp * times,
-  data = datensatz,
-  subject = "subjekte",
+  data = data,
+  subject = "subjects",
   hypothesis = "H0p",
   contrast = list("grp:times")
 )
 
 fit
+plot(fit)
+plot(fit$MCTP)
 ```
+
+## Weighted and unweighted relative effects
+
+The package distinguishes between weighted and unweighted relative
+marginal effects.
+
+Weighted effects are based on the sample-size weighted reference
+distribution. They describe relative positions with respect to the
+empirical distribution obtained by pooling the marginal samples
+according to their observed sample sizes. Weighted effects are useful as
+descriptive summaries and correspond to ordinary rank-based estimators.
+
+Unweighted effects are based on an equally weighted reference
+distribution over the factorial cells. Each cell contributes equally to
+the reference distribution, independently of its sample size. These
+effects are the inferential target for hypotheses in relative marginal
+effects, selected by `hypothesis = "H0p"`, and are estimated using
+pseudo-ranks.
+
+Consequently, tests of hypotheses in relative marginal effects are
+performed for unweighted effects. Weighted effects are reported
+descriptively, but they are not used as the target of `H0p` tests
+because their interpretation depends on the sample-size allocation
+across cells.
+
+\`\`\`\`markdown The following example illustrates how the two effect
+concepts are requested.
+
+``` r
+data(panic2)
+
+fit_weighted <- nparLD(
+  resp ~ group * time,
+  data = panic2,
+  subject = "subject",
+  effect = "weighted",
+  hypothesis = "H0F"
+)
+
+fit_unweighted <- nparLD(
+  resp ~ group * time,
+  data = panic2,
+  subject = "subject",
+  effect = "unweighted",
+  hypothesis = "H0F"
+)
+
+fit_weighted
+fit_unweighted
+```
+
+The first analysis reports weighted effects as descriptive summaries
+together with tests in marginal distribution functions. The second
+analysis targets unweighted relative marginal effects and therefore
+provides the appropriate effect scale for `H0p`.
 
 ## Hypothesis types
 
 Use `hypothesis = "H0F"` to test hypotheses in marginal distribution
-functions. These tests compare entire marginal distributions.
+functions. These tests compare marginal distribution functions either
+using classical ranks with the argument `effect="weighted"` or using
+pseudo-ranks using the argument `effect = "unweighted"`.
 
 Use `hypothesis = "H0p"` to test hypotheses in unweighted relative
 marginal effects. These effects describe the relative position of each

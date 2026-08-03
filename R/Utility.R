@@ -35,9 +35,10 @@ print.nparld_fit <- function(x, ...) {
   cat("\nANOVA-Type Statistic (ATS)\n")
   print(round(x$ATS, 4))
 
-
  
   if(!is.null(x$MCTP)) print(x$MCTP)
+
+  if(!is.null(x$covariance.info)) print(x$covariance.info)
 
   if (!is.null(x$perm) && isTRUE(x$perm$available)) {
     
@@ -46,6 +47,23 @@ print.nparld_fit <- function(x, ...) {
     print(x$perm$table)
   }
 
+
+  invisible(x)
+}
+
+#' Print nparLD covariance matrix
+#'
+#' @param x An object of class \code{nparld_covarianceinfo}.
+#' @param digits Number of digits.
+#' @param ... Further arguments.
+#' @export
+
+print.nparld_covarianceinfo <- function(x, digits = 4, ...) {
+
+  cat("\nEstimated covariance matrix\n")
+  cat("-------------------------------------------------\n")
+
+  print(round(unclass(x), digits = digits))
 
   invisible(x)
 }

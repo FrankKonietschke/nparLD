@@ -17,6 +17,7 @@ nparLD(
   contrast = NULL,
   sci.method = c("fisher", "multi.t"),
   Factor.Information = FALSE,
+  covariance = FALSE,
   perm.test = FALSE,
   B = 1000
 )
@@ -57,6 +58,8 @@ contrast procedures.}
 
 \item{Factor.Information}{Logical. Should factor-specific information be returned?}
 
+\item{covariance}{Logical. Should the estimated covariance matrix be returned? The default is \code{FALSE}}
+
 \item{perm.test}{Logical. Should the paired two-time-point permutation test be
 used when applicable?}
 
@@ -92,6 +95,8 @@ interaction, the simultaneous confidence interval method, the global
 multiple contrast test, and local contrast estimates with standard errors,
 simultaneous confidence limits, test statistics, p-values, and degrees of
 freedom.
+\item \code{covariance.info}: estimated covariance matrix used for the
+selected hypothesis, returned when \code{covariance = TRUE}.
 \item \code{perm}: permutation test results, returned when a permutation
 test is requested and applicable.
 \item \code{hypothesis}: the type of hypothesis tested, either \code{"H0F"}
@@ -152,6 +157,15 @@ fit
 Akritas, M. G., & Brunner, E. (1997). A unified approach to rank tests for mixed models.
 Journal of Statistical Planning and Inference, 61(2), 249-277.
 
+Brunner, E., Bathke, A.C., Konietschke, F. Rank and Pseudo-Rank Procedures
+for Independent Observations in Factorial Designs. Springer International Publishing, 2018.
+
+Brunner, E., Domhof, S., & Langer, F. (2002). Nonparametric analysis of longitudinal data in factorial experiments. Wiley, New York
+
+Brunner, E., Konietschke, F., Pauly, M., Puri, M. L. (2017). Rank-based procedures in factorial designs:
+Hypotheses about non-parametric treatment effects. Journal of the Royal Statistical Society: Series B
+(Statistical Methodology), 79(5), 1463-1485.
+
 Domhof, S., Brunner, E., Osgood, D. W. (2002). Rank procedures for repeated measures with missing values.
 Sociological methods & research, 30(3), 367-393.
 
@@ -159,12 +173,8 @@ Konietschke, F., Bathke, A. C., Hothorn, L. A., & Brunner, E. (2010).
 Testing and estimation of purely nonparametric effects in repeated measures designs.
 Computational Statistics & Data Analysis, 54(8), 1895-1905.
 
-Brunner, E., Bathke, A.C., Konietschke, F. Rank and Pseudo-Rank Procedures
-for Independent Observations in Factorial Designs. Springer International Publishing, 2018.
-
-Brunner, E., Konietschke, F., Pauly, M., Puri, M. L. (2017). Rank-based procedures in factorial designs:
-Hypotheses about non-parametric treatment effects. Journal of the Royal Statistical Society: Series B
-(Statistical Methodology), 79(5), 1463-1485.
+Konietschke, F., Hothorn, L. A., Brunner, E. (2012). Rank-based multiple test procedures and simultaneous confidence intervals. Electronic Journal of Statistics,
+6, 738-759.
 
 Rubarth, K., Pauly, M., & Konietschke, F. (2022). Ranking procedures for repeated measures designs with missing data:
 estimation, testing and asymptotic theory.
@@ -173,7 +183,4 @@ Statistical Methods in Medical Research, 31(1), 105-118.
 Rubarth, K., Sattler, P., Zimmermann, H. G., & Konietschke, F. (2021).
 Estimation and testing of Wilcoxon–Mann–Whitney effects in factorial clustered data designs.
 Symmetry, 14(2), 244.
-
-Konietschke, F., Hothorn, L. A., Brunner, E. (2012). Rank-based multiple test procedures and simultaneous confidence intervals. Electronic Journal of Statistics,
-6, 738-759.
 }

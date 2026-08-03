@@ -35,7 +35,8 @@ fit <- nparLD(resp ~ group * time,
               subject = "subject",
               hypothesis = "H0p",
               contrast = list("group:time"),
-              Factor.Information = TRUE)
+              Factor.Information = TRUE,
+              covariance=TRUE)
 fit
 plot(fit)
 plot(fit$MCTP)

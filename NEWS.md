@@ -9,6 +9,7 @@
 * Added subject-level and observation-level cell weighting for relative marginal effects.
 * Added multiple contrast procedures and simultaneous confidence intervals.
 * Added rank- and pseudo-rank-based inference through a unified interface.
+* Added the argument `covariance`, which optionally includes the estimated covariance matrix in the output.
 * Added updated documentation, examples, README, vignette, and example datasets.
 
 ## Interface changes

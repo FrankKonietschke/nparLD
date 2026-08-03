@@ -1875,7 +1875,7 @@ res <- .nparld_MCTP(
   contrast_labels <- rownames(C)
 
   if (is.null(contrast_labels)) {
-    contrast_labels <- paste("Contrast", seq_len(nrow(C)))
+    contrast_labels <- paste("C", seq_len(nrow(C)))
   }
 
   rownames(res$Local.Results) <- contrast_labels
