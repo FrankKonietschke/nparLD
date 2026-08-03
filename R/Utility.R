@@ -163,43 +163,50 @@ print.summary.nparld_fit <- function(x, digits = 4, ...) {
   invisible(x)
 }
 
-#' Print MCTP 
+#' Print nparLD multiple contrast results
 #'
-#' @param x An object of class \code{nparld_fit}.
+#' @param x An object of class \code{"nparld_mctp"}.
 #' @param digits Number of digits.
+#' @param matrix Logical. If \code{TRUE}, print the contrast matrix used in the
+#'   multiple contrast procedure.
 #' @param ... Further arguments.
 #' @export
+print.nparld_mctp <- function(x, digits = 4, matrix = FALSE, ...) {
 
-print.nparld_mctp <- function(x, digits = 4, ...) {
-
-  cat("\nMultiple Contrast Test Results:\n")
+  cat("\n Multiple Contrast Test Procedure \n")
   cat("-------------------------------------------------\n")
-  
-  cat("Factor:", x$Factor, "\n")
-if (!is.na(x$sci.method)) cat("SCI method:", x$sci.method, "\n")
-  
-  # global DF
-  if (!is.null(x$DF)) {
-    cat("Degrees of freedom (global):", round(x$DF, digits), "\n")
+
+  if (!is.null(x$Factor)) {
+    cat(" Factor or interaction:", x$Factor, "\n", sep = "")
   }
-  
-  cat("Simultaneous critical value:",
-      round(x$Quantile, digits), "\n")
-  
-  cat("\nGlobal test\n")
-  print(round(x$Global.Result, digits))
-  
-  cat("\nLocal contrasts\n")
-  
-  tmp <- x$Local.Results
-  
-  # safe rounding
-  tmp <- as.data.frame(lapply(tmp, function(z)
-    if (is.numeric(z)) round(z, digits) else z
-  ))
-  
-  print(tmp, row.names = TRUE)
-  
+
+  if (!is.null(x$sci.method) && !is.na(x$sci.method)) {
+    cat(" SCI method:", x$sci.method, "\n", sep = "")
+  }
+
+  if (!is.null(x$Global.Result)) {
+    cat("\n Global result \n")
+    cat("-------------------------------------------------\n")
+    print(round(x$Global.Result, digits = digits))
+  }
+
+  if (!is.null(x$Local.Results)) {
+    cat("\n Local contrast results \n")
+    cat("-------------------------------------------------\n")
+    print(round(x$Local.Results, digits = digits))
+  }
+
+  if (!is.null(x$Contrast.Matrix)) {
+    if (isTRUE(matrix)) {
+      cat("\n Contrast matrix \n")
+      cat("-------------------------------------------------\n")
+      print(round(x$Contrast.Matrix, digits = digits))
+    } else {
+      cat("\n Contrast matrix: available in component `Contrast.Matrix`.\n")
+      cat(" To print it, use `print(x, matrix = TRUE)` on the MCTP object.\n")
+    }
+  }
+
   invisible(x)
 }
 

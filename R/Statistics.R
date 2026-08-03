@@ -1858,18 +1858,18 @@ if (!is.null(eps_theta)) {
                                   eps_theta = NULL,
                                   factor_name = NULL) {
 
-res <- .nparld_MCTP(
-  theta_hat = theta_hat,
-  Sigma = Sigma,
-  H = H,
-  C = C,
-  N = N,
-  alpha = alpha,
-  sci.method = sci.method,
-  hypothesis = hypothesis,
-  df_satt = df_satt,
-  eps_theta = eps_theta
-)
+  res <- .nparld_MCTP(
+    theta_hat = theta_hat,
+    Sigma = Sigma,
+    H = H,
+    C = C,
+    N = N,
+    alpha = alpha,
+    sci.method = sci.method,
+    hypothesis = hypothesis,
+    df_satt = df_satt,
+    eps_theta = eps_theta
+  )
 
   # build readable contrast labels
   contrast_labels <- rownames(C)
@@ -1881,6 +1881,11 @@ res <- .nparld_MCTP(
   rownames(res$Local.Results) <- contrast_labels
   rownames(res$Contrast.Matrix) <- contrast_labels
 
+  if (!is.null(names(theta_hat)) &&
+      length(names(theta_hat)) == ncol(res$Contrast.Matrix)) {
+    colnames(res$Contrast.Matrix) <- names(theta_hat)
+  }
+
   if (!is.null(factor_name)) {
     res$Factor <- factor_name
   }
@@ -1888,4 +1893,3 @@ res <- .nparld_MCTP(
   class(res) <- "nparld_mctp"
   res
 }
-

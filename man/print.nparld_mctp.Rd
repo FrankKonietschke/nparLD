@@ -2,17 +2,20 @@
 % Please edit documentation in R/Utility.R
 \name{print.nparld_mctp}
 \alias{print.nparld_mctp}
-\title{Print MCTP}
+\title{Print nparLD multiple contrast results}
 \usage{
-\method{print}{nparld_mctp}(x, digits = 4, ...)
+\method{print}{nparld_mctp}(x, digits = 4, matrix = FALSE, ...)
 }
 \arguments{
-\item{x}{An object of class \code{nparld_fit}.}
+\item{x}{An object of class \code{"nparld_mctp"}.}
 
 \item{digits}{Number of digits.}
+
+\item{matrix}{Logical. If \code{TRUE}, print the contrast matrix used in the
+multiple contrast procedure.}
 
 \item{...}{Further arguments.}
 }
 \description{
-Print MCTP
+Print nparLD multiple contrast results
 }
