@@ -32,7 +32,7 @@ contrast procedures, and simultaneous confidence intervals.
 
 The argument \code{hypothesis = "H0F"} tests hypotheses in marginal
 distribution functions. The argument \code{hypothesis = "H0p"} tests
-hypotheses in unweighted relative marginal Mann-hitney effects and thus addresses
+hypotheses in unweighted relative marginal Mann-Whitney effects and thus addresses
 the nonparametric Behrens-Fisher problem in factorial longitudinal designs.
 }
 
@@ -41,7 +41,7 @@ the nonparametric Behrens-Fisher problem in factorial longitudinal designs.
 The argument \code{effect = "weighted"} estimates weighted relative marginal Mann-Whitney effects
 using classical ranks (mid-ranks) of the observations. The argument \code{effect = "unweighted"}
 estimates unweighted relative marginal Mann-Whitney effects using pseudo-ranks of the data. The weighted relative marginal
-effect depends on sample sizes and their allocactions, whereas the unweighted relative marginal effect does not.
+effect depends on sample sizes and their allocations, whereas the unweighted relative marginal effect does not.
 }
 
 \section{Contrast}{

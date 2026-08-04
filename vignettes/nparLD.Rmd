@@ -270,7 +270,7 @@ fit_miss <- nparLD(
 
 fit_miss
 ```
-The descriptive table in the output lists the number of subjets and missing values for every condition.
+The descriptive table in the output lists the number of subjects and missing values for every condition.
 
 
 ## Dependent replicate measurements
