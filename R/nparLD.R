@@ -106,15 +106,75 @@
 #'
 #'
 #' @examples
-#' set.seed(123)
-#' dat <- data.frame(
-#'   subject = rep(1:10, each = 4),
-#'   time = rep(1:4, times = 10),
-#'   y = rnorm(40)
+#' ## One repeated-measures factor: dental data
+#' data(dental)
+#'
+#' fit_dental <- nparLD(
+#'   resp ~ time,
+#'   data = dental,
+#'   subject = "subject",
+#'   hypothesis = "H0p"
 #' )
-#' fit <- nparLD(y ~ time, data = dat, subject = "subject",
-#'               hypothesis = "H0p")
-#' fit
+#'
+#' fit_dental
+#'
+#' ## Crossed factorial longitudinal design: shoulder data
+#' data(shoulder)
+#'
+#' fit_shoulder <- nparLD(
+#'   resp ~ group1 * group2 * time,
+#'   data = shoulder,
+#'   subject = "subject",
+#'   hypothesis = "H0p"
+#' )
+#'
+#' fit_shoulder
+#'
+#' ## Multiple contrast procedure for an interaction
+#' fit_contrast <- nparLD(
+#'   resp ~ group1 * group2 * time,
+#'   data = shoulder,
+#'   subject = "subject",
+#'   hypothesis = "H0p",
+#'   contrast = list("group1:time")
+#' )
+#'
+#' fit_contrast$MCTP
+#' print(fit_contrast$MCTP, matrix = TRUE)
+#'
+#' ## Missing response values
+#' dat_miss <- dental
+#' dat_miss$resp[c(2, 7, 12)] <- NA
+#'
+#' fit_miss <- nparLD(
+#'   resp ~ time,
+#'   data = dat_miss,
+#'   subject = "subject",
+#'   hypothesis = "H0p"
+#' )
+#'
+#' fit_miss
+#'
+#' ## Dependent replicate measurements: BrdU data
+#' data(brdu)
+#'
+#' fit_brdu <- nparLD(
+#'   resp ~ dose,
+#'   data = brdu,
+#'   subject = "culture",
+#'   replicate = "replicate",
+#'   hypothesis = "H0p",
+#'   cell.weights = "subjects"
+#' )
+#'
+#' fit_brdu
+#'
+#' \dontrun{
+#' ## Graphical displays
+#' plot(fit_dental)
+#' plot(fit_shoulder)
+#' plot(fit_contrast$MCTP)
+#' }
 #'
 #'
 #' @references 
@@ -138,7 +198,7 @@
 #' Testing and estimation of purely nonparametric effects in repeated measures designs. 
 #' Computational Statistics & Data Analysis, 54(8), 1895-1905.
 #'
-#'Konietschke, F., Hothorn, L. A., Brunner, E. (2012). Rank-based multiple test procedures and simultaneous confidence intervals. Electronic Journal of Statistics,
+#' Konietschke, F., Hothorn, L. A., Brunner, E. (2012). Rank-based multiple test procedures and simultaneous confidence intervals. Electronic Journal of Statistics,
 #' 6, 738-759.
 #' 
 #' Rubarth, K., Pauly, M., & Konietschke, F. (2022). Ranking procedures for repeated measures designs with missing data: 
@@ -256,72 +316,78 @@ est <- .nparld_estimate_theta_rankmeans(
   Sigma <- NULL
   df_satt <- NULL
 
-  if (hypothesis == "H0p") {
-
-    if (effect == "weighted") {
-      stop("Testing H0p with weighted reference distribution is not implemented.",
-           call. = FALSE)
-    }
-
-    if (!is.null(contrast)) {
-      if (!any(hy$Output.names == contrast[[1]])) {
-        stop("Factor not found in model.", call. = FALSE)
-      }
-
-      pos <- which(hy$Output.names == contrast[[1]])
-      H <- hy$Hypotheses[[pos]]
-      C <- .nparld_build_contrast_matrix(contrast, H)
-      CH <- C %*% H
-
-      if (cell.weights == "subjects") {
-        covp <- .nparld_cov_H0p_ref_unweighted_subjects(
-          split_obj,
-          Fhat,
-          C = CH
-        )
-      } else {
-        covp <- .nparld_cov_H0p_ref_unweighted_observations(
-          split_obj,
-          Fhat,
-          C = CH
-        )
-      }
-
-      Sigma   <- covp$Sigma
-      df_satt <- covp$df_satt
-
-    } else {
-
-      if (cell.weights == "subjects") {
-        covp <- .nparld_cov_H0p_ref_unweighted_subjects(
-          split_obj,
-          Fhat,
-          C = NULL
-        )
-      } else {
-        covp <- .nparld_cov_H0p_ref_unweighted_observations(
-          split_obj,
-          Fhat,
-          C = NULL
-        )
-      }
-
-      Sigma   <- covp$Sigma
-      df_satt <- covp$df_satt
-    }
-
-    if (is.null(Sigma)) {
-      stop("Sigma could not be computed.", call. = FALSE)
-    }
-
 if (hypothesis == "H0p") {
+
+  if (effect == "weighted") {
+    stop("Testing H0p with weighted reference distribution is not implemented.",
+         call. = FALSE)
+  }
+
+  if (!is.null(contrast)) {
+
+    if (!any(hy$Output.names == contrast[[1]])) {
+      stop("Factor not found in model.", call. = FALSE)
+    }
+
+    pos <- which(hy$Output.names == contrast[[1]])
+
+    if (length(pos) != 1L) {
+      stop("Requested contrast term is ambiguous.", call. = FALSE)
+    }
+
+    if (length(contrast) == 1L) {
+      ## Use the same hypothesis matrix as WTS/ATS
+      H <- hy$Hypotheses[[pos]]
+      C <- diag(nrow(H))
+      rownames(C) <- rownames(H)
+    } else {
+      ## Use marginal-effect matrix and then apply named/user contrast
+      H <- hy$CI.Matrices[[pos]]
+      C <- .nparld_build_contrast_matrix(contrast, H)
+    }
+
+    CH <- C %*% H
+
+    if (cell.weights == "subjects") {
+      covp <- .nparld_cov_H0p_ref_unweighted_subjects(
+        split_obj,
+        Fhat,
+        C = CH
+      )
+    } else {
+      covp <- .nparld_cov_H0p_ref_unweighted_observations(
+        split_obj,
+        Fhat,
+        C = CH
+      )
+    }
+
+  } else {
+
+    if (cell.weights == "subjects") {
+      covp <- .nparld_cov_H0p_ref_unweighted_subjects(
+        split_obj,
+        Fhat,
+        C = NULL
+      )
+    } else {
+      covp <- .nparld_cov_H0p_ref_unweighted_observations(
+        split_obj,
+        Fhat,
+        C = NULL
+      )
+    }
+  }
+
+  Sigma   <- covp$Sigma
+  df_satt <- covp$df_satt
+
+  if (is.null(Sigma)) {
+    stop("Sigma could not be computed.", call. = FALSE)
+  }
+
   var_theta <- diag(Sigma)
 
-  eps_diag <- diag(covp$eps_theta)
-
-  ## diag(eps_theta) is NA by construction, because eps_theta is pairwise.
-  ## For individual effects, use the smallest finite pairwise floor involving
-  ## the corresponding cell.
   eps_effect <- apply(covp$eps_theta, 1, function(x) {
     x <- x[is.finite(x)]
     if (length(x) == 0L) NA_real_ else min(x)
@@ -343,10 +409,9 @@ if (hypothesis == "H0p") {
   )
 
   Sigma <- Sigma.reg
-}
 
-    text.hypotheses <- "Tested in marginal Mann-Whitney effects (marginal relative effects)"
-  }
+  text.hypotheses <- "Tested in marginal Mann-Whitney effects (marginal relative effects)"
+}
 
   if (hypothesis == "H0F") {
 
@@ -377,26 +442,32 @@ if (hypothesis == "H0p") {
     hy$Output.names
   )
 
-  if (!is.null(contrast)) {
-    pos <- which(hy$Output.names == contrast[[1]])
-    H <- hy$Hypotheses[[pos]]
-    C <- .nparld_build_contrast_matrix(contrast, H)
+if (!is.null(contrast)) {
+  pos <- which(hy$Output.names == contrast[[1]])
 
-    # NOTE: sci.method must exist elsewhere in your codebase
-res.mctp <- .nparld_run_contrasts(
-  theta_hat = theta_hat,
-  Sigma = Sigma,
-  H = H,
-  C = C,
-  N = design$N,
-  alpha = alpha,
-  sci.method = sci.method,
-  hypothesis = hypothesis,
-  df_satt = df_satt,
-  eps_theta = if (hypothesis == "H0p") covp$eps_theta else NULL,
-  factor_name = contrast[[1]]
-)
+  if (length(contrast) == 1L) {
+    H <- hy$Hypotheses[[pos]]
+    C <- diag(nrow(H))
+    rownames(C) <- rownames(H)
+  } else {
+    H <- hy$CI.Matrices[[pos]]
+    C <- .nparld_build_contrast_matrix(contrast, H)
   }
+
+  res.mctp <- .nparld_run_contrasts(
+    theta_hat = theta_hat,
+    Sigma = Sigma,
+    H = H,
+    C = C,
+    N = design$N,
+    alpha = alpha,
+    sci.method = sci.method,
+    hypothesis = hypothesis,
+    df_satt = df_satt,
+    eps_theta = if (hypothesis == "H0p") covp$eps_theta else NULL,
+    factor_name = contrast[[1]]
+  )
+}
 
   #*******************************************************************************
   # Factor information

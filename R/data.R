@@ -395,3 +395,41 @@
 #' @keywords datasets
 "tree"
 
+#' BrdU incorporation in fibroblasts
+#'
+#' BrdU incorporation in fibroblast cultures measured under four dose
+#' conditions. For each culture and dose condition, three replicate measurements
+#' are available. The data set is provided in long format and can be used to
+#' illustrate dependent replicate measurements in `nparLD()`.
+#'
+#' @format A data frame with 60 rows and 4 variables:
+#' \describe{
+#'   \item{resp}{BrdU incorporation response.}
+#'   \item{dose}{Dose condition, with levels `0`, `0.1`, `1`, and `10`.}
+#'   \item{culture}{Culture identifier. This is the independent experimental unit.}
+#'   \item{replicate}{Replicate identifier within each culture-dose condition.}
+#' }
+#'
+#' @details
+#' The original variables were `CultureNo`, `Replic`, `Dose`, and `Brdu`.
+#' In the package data set, the variables were renamed to `culture`,
+#' `replicate`, `dose`, and `resp` for consistency with the examples.
+#'
+#' @examples
+#' data(brdu)
+#'
+#' fit <- nparLD(
+#'   resp ~ dose,
+#'   data = brdu,
+#'   subject = "culture",
+#'   replicate = "replicate",
+#'   hypothesis = "H0p",
+#'   cell.weights = "subjects"
+#' )
+#'
+#' fit
+#'
+#' @name brdu
+#' @docType data
+#' @keywords datasets
+"brdu"

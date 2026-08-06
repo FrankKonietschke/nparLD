@@ -27,7 +27,7 @@ print.nparld_fit <- function(x, ...) {
   print(x$effects)
   if(!is.null(x$factor.info)) print(x$factor.info)
 
-  cat("\nGobal Test Results: \n")
+  cat("\n Global Test Results: \n")
    cat("-------------------------------------------------\n")
   cat("\nWald-Type Statistic (WTS)\n")
   print(round(x$WTS, 4))
@@ -210,31 +210,89 @@ print.nparld_mctp <- function(x, digits = 4, matrix = FALSE, ...) {
   invisible(x)
 }
 
-#' Plot relative effects from an nparLD fit
+
+#' Plot nparLD results
 #'
-#' @param x An object of class \code{nparld_fit}.
-#' @param ... Further arguments passed to the plotting function.
-#' @param main Optional main title.
-#' @param xlab Optional label for the x-axis.
-#' @param ylab Label for the y-axis.
+#' @param x An object of class \code{"nparld_fit"}.
+#' @param term Optional character vector specifying one or more model terms for
+#'   which factor-specific relative effects and confidence intervals should be
+#'   plotted. The requested terms require \code{Factor.Information = TRUE} in the
+#'   original call to \code{nparLD()}.
+#' @param xlab Optional x-axis label.
+#' @param ylab Optional y-axis label.
+#' @param main Optional plot title.
 #' @param legend.title Optional legend title.
-#' @param ref.line Reference line shown in the plot. Use \code{NULL} to suppress it.
-#' @param ref.lty Line type of the reference line.
-#' @param ref.col Color of the reference line.
+#' @param ref.line Optional horizontal reference line.
+#' @param ref.lty Line type for the reference line.
+#' @param ref.col Colour of the reference line.
+#' @param ... Further arguments.
 #'
-#' @return A \code{ggplot} object.
+#' @examples
+#' data(shoulder)
+#'
+#' fit <- nparLD(
+#'   resp ~ group1 * group2 * time,
+#'   data = shoulder,
+#'   subject = "subject",
+#'   hypothesis = "H0p",
+#'   Factor.Information = TRUE
+#' )
+#'
+#' plot(fit)
+#' plot(fit, term = "time")
+#' plot(fit, term = "group1:time")
+#'
 #' @export
-plot.nparld_fit <- function(x, ...,
-                            main = NULL,
+plot.nparld_fit <- function(x,
+                            term = NULL,
                             xlab = NULL,
-                            ylab = "Relative Treatment Effect",
+                            ylab = "Relative effect",
+                            main = NULL,
                             legend.title = NULL,
                             ref.line = 0.5,
-                            ref.lty = 2,
-                            ref.col = "grey50") {
+                            ref.lty = "dashed",
+                            ref.col = "grey40",
+                            ...) {
 
-  if (!requireNamespace("ggplot2", quietly = TRUE))
-    stop("Package 'ggplot2' is required for plotting.")
+  if (is.null(term)) {
+    return(.nparld_plot_cell_effects(
+      x = x,
+      xlab = xlab,
+      ylab = ylab,
+      main = main,
+      legend.title = legend.title,
+      ref.line = ref.line,
+      ref.lty = ref.lty,
+      ref.col = ref.col,
+      ...
+    ))
+  }
+
+.nparld_plot_factor_information(
+  x = x,
+  term = term,
+  reference = ref.line,
+  ylab = ylab,
+  xlab = xlab,
+  main = main,
+  ref.lty = ref.lty,
+  ref.col = ref.col,
+  ...
+)
+}
+
+.nparld_plot_cell_effects <- function(x,
+                                      xlab = NULL,
+                                      ylab = "Relative effect",
+                                      main = NULL,
+                                      legend.title = NULL,
+                                      ref.line = 0.5,
+                                      ref.lty = "dashed",
+                                      ref.col = "grey40",
+                                      ...) {
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  stop("Package 'ggplot2' is required for plotting.", call. = FALSE)
+}
 
   eff <- x$effects
   has_ci <- all(c("lower", "upper") %in% names(eff))
@@ -313,6 +371,8 @@ plot.nparld_fit <- function(x, ...,
       )
   }
 
+
+
   p +
     ggplot2::labs(
       title = main,
@@ -322,6 +382,167 @@ plot.nparld_fit <- function(x, ...,
     ) +
     ggplot2::theme_bw()
 }
+
+.nparld_plot_factor_information <- function(x,
+                                            term,
+                                            reference = 0.5,
+                                            ylab = "Relative effect",
+                                            xlab = NULL,
+                                            main = NULL,
+                                            ref.lty = "dashed",
+                                            ref.col = "grey40",
+                                            ...) {
+
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package 'ggplot2' required for plotting.", call. = FALSE)
+  }
+
+  if (is.null(x$factor.info)) {
+    stop(
+      "No factor-specific information is available. ",
+      "Refit the model with Factor.Information = TRUE.",
+      call. = FALSE
+    )
+  }
+
+  if (x$hypothesis != "H0p") {
+    stop(
+      "Factor-information confidence interval plots are available ",
+      "only for hypothesis = 'H0p'.",
+      call. = FALSE
+    )
+  }
+
+  dat <- .nparld_collect_factor_information(x$factor.info, term)
+
+estimate_col <- intersect(
+  c("Rel.Effect", "RTE", "Estimate", "estimate"),
+  names(dat)
+)[1]
+
+lower_col <- intersect(
+  c("Lower", "lower", "lower.CL", "Lower.CL", "Lower.CI", "lower.CI"),
+  names(dat)
+)[1]
+
+upper_col <- intersect(
+  c("Upper", "upper", "upper.CL", "Upper.CL", "Upper.CI", "upper.CI"),
+  names(dat)
+)[1]
+  if (is.na(estimate_col) || is.na(lower_col) || is.na(upper_col)) {
+    stop(
+      "Could not identify estimate and confidence interval columns in factor.info.",
+      call. = FALSE
+    )
+  }
+
+stat_cols <- c(
+  "term", "Nsubj", "lambda", "Nobs", "Nmiss",
+  "ScoreMean", "RTE", "Rel.Effect", "Estimate", "estimate",
+  "std.error", "Std.Error", "SE",
+  "lower", "Lower", "lower.CL", "Lower.CL", "Lower.CI", "lower.CI",
+  "upper", "Upper", "upper.CL", "Upper.CL", "Upper.CI", "upper.CI"
+)
+
+if (!".label" %in% names(dat)) {
+  label_cols <- setdiff(names(dat), stat_cols)
+
+  if (length(label_cols) == 0L) {
+    dat$.label <- seq_len(nrow(dat))
+  } else {
+    dat$.label <- apply(dat[label_cols], 1, paste, collapse = ":")
+  }
+}
+
+  dat$.label <- factor(dat$.label, levels = unique(dat$.label))
+
+  if (is.null(main)) {
+  main <- paste("Estimated relative effects:", paste(term, collapse = ", "))
+}
+
+ggplot2::ggplot(
+  dat,
+  ggplot2::aes(
+    x = .data[[".label"]],
+    y = .data[[estimate_col]],
+    ymin = .data[[lower_col]],
+    ymax = .data[[upper_col]]
+  )
+) +
+  ggplot2::geom_hline(
+    yintercept = reference,
+    linetype = ref.lty,
+    colour = ref.col
+  ) +
+  ggplot2::geom_pointrange() +
+  ggplot2::facet_wrap(ggplot2::vars(.data[["term"]]), scales = "free_x") +
+    ggplot2::labs(
+      x = xlab,
+      y = ylab,
+      title = main
+    ) +
+    ggplot2::coord_cartesian(ylim = c(0, 1)) +
+    ggplot2::theme_bw()
+}
+
+.nparld_collect_factor_information <- function(factor.info, term) {
+
+  if (is.list(factor.info) && !is.data.frame(factor.info)) {
+
+    missing_terms <- setdiff(term, names(factor.info))
+
+    if (length(missing_terms) > 0L) {
+      stop(
+        "The requested term is not available in factor.info: ",
+        paste(missing_terms, collapse = ", "),
+        call. = FALSE
+      )
+    }
+
+dat <- do.call(rbind, lapply(term, function(tt) {
+  z <- factor.info[[tt]]
+  z <- as.data.frame(z)
+
+  z$.label <- rownames(z)
+  z$term <- tt
+
+  z
+}))
+
+rownames(dat) <- NULL
+return(dat)
+
+    rownames(dat) <- NULL
+    return(dat)
+  }
+
+  if (is.data.frame(factor.info)) {
+
+    if (!"term" %in% names(factor.info)) {
+      stop(
+        "If factor.info is a data frame, it must contain a column named 'term'.",
+        call. = FALSE
+      )
+    }
+
+    dat <- factor.info[factor.info$term %in% term, , drop = FALSE]
+
+    if (nrow(dat) == 0L) {
+      stop(
+        "The requested term is not available in factor.info: ",
+        paste(term, collapse = ", "),
+        call. = FALSE
+      )
+    }
+
+    rownames(dat) <- NULL
+    return(dat)
+  }
+
+  stop("Unsupported factor.info structure.", call. = FALSE)
+}
+
+
 
 ##################################################################
 #Plot the SCI

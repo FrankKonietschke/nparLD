@@ -2,42 +2,61 @@
 % Please edit documentation in R/Utility.R
 \name{plot.nparld_fit}
 \alias{plot.nparld_fit}
-\title{Plot relative effects from an nparLD fit}
+\title{Plot nparLD results}
 \usage{
 \method{plot}{nparld_fit}(
   x,
-  ...,
-  main = NULL,
+  term = NULL,
   xlab = NULL,
-  ylab = "Relative Treatment Effect",
+  ylab = "Relative effect",
+  main = NULL,
   legend.title = NULL,
   ref.line = 0.5,
-  ref.lty = 2,
-  ref.col = "grey50"
+  ref.lty = "dashed",
+  ref.col = "grey40",
+  ...
 )
 }
 \arguments{
-\item{x}{An object of class \code{nparld_fit}.}
+\item{x}{An object of class \code{"nparld_fit"}.}
 
-\item{...}{Further arguments passed to the plotting function.}
+\item{term}{Optional character vector specifying one or more model terms for
+which factor-specific relative effects and confidence intervals should be
+plotted. The requested terms require \code{Factor.Information = TRUE} in the
+original call to \code{nparLD()}.}
 
-\item{main}{Optional main title.}
+\item{xlab}{Optional x-axis label.}
 
-\item{xlab}{Optional label for the x-axis.}
+\item{ylab}{Optional y-axis label.}
 
-\item{ylab}{Label for the y-axis.}
+\item{main}{Optional plot title.}
 
 \item{legend.title}{Optional legend title.}
 
-\item{ref.line}{Reference line shown in the plot. Use \code{NULL} to suppress it.}
+\item{ref.line}{Optional horizontal reference line.}
 
-\item{ref.lty}{Line type of the reference line.}
+\item{ref.lty}{Line type for the reference line.}
 
-\item{ref.col}{Color of the reference line.}
-}
-\value{
-A \code{ggplot} object.
+\item{ref.col}{Colour of the reference line.}
+
+\item{...}{Further arguments.}
 }
 \description{
-Plot relative effects from an nparLD fit
+Plot nparLD results
+}
+\examples{
+data(shoulder)
+
+fit <- nparLD(
+  resp ~ group1 * group2 * time,
+  data = shoulder,
+  subject = "subject",
+  hypothesis = "H0p",
+  Factor.Information = TRUE
+)
+
+plot(fit)
+plot(fit, term = "time")
+plot(fit, term = "group1:time")
+
 }

@@ -338,3 +338,18 @@ test_that("nparLD runs with true dependent replicate observations", {
   expect_equal(nrow(fit_subjects$effects), nrow(fit_observations$effects))
 })
 
+test_that("brdu replicate data can be analyzed", {
+  fit <- nparLD(
+    resp ~ dose,
+    data = brdu,
+    subject = "culture",
+    replicate = "replicate",
+    hypothesis = "H0p",
+    cell.weights = "subjects"
+  )
+
+  expect_s3_class(fit, "nparld_fit")
+  expect_true("effects" %in% names(fit))
+  expect_true(nrow(fit$effects) > 0)
+})
+

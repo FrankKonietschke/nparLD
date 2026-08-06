@@ -161,6 +161,7 @@ the empirical sample-size allocation, whereas unweighted effects keep the
 factorial cells on equal footing.
 
 
+
 ## Hypotheses H0F and H0p
 
 
@@ -319,52 +320,75 @@ the independent subject-level units.
 
 
 ```{r replicate-example}
-set.seed(123)
 
-T <- 4
-n <- c(10, 10, 10)
-N <- sum(T * n)
+data(brdu)
 
-dat <- data.frame(
-  y = rnorm(N),
-  time = c(rep(1:T, n[1]), rep(1:T, n[2]), rep(1:T, n[3])),
-  group = c(rep(1, n[1] * T), rep(2, n[2] * T), rep(3, n[3] * T)),
-  subject = c(
-    sort(rep(1:n[1], T)),
-    sort(rep((n[1] + 1):(n[1] + n[2]), T)),
-    sort(rep((n[1] + n[2] + 1):(n[1] + n[2] + n[3]), T))
-  )
-)
-
-dat_rep <- dat[rep(seq_len(nrow(dat)), each = 3), ]
-dat_rep$replicate <- rep(1:3, times = nrow(dat))
-dat_rep$y <- rnorm(nrow(dat_rep))
-
-fit_rep_subjects <- nparLD(
-  y ~ group * time,
-  data = dat_rep,
-  subject = "subject",
+fit_brdu_subjects <- nparLD(
+  resp ~ dose,
+  data = brdu,
+  subject = "culture",
   replicate = "replicate",
   hypothesis = "H0p",
   cell.weights = "subjects"
 )
 
-fit_rep_observations <- nparLD(
-  y ~ group * time,
-  data = dat_rep,
-  subject = "subject",
+
+
+
+fit_brdu_observations <- nparLD(
+  resp ~ dose,
+  data = brdu,
+  subject = "culture",
   replicate = "replicate",
   hypothesis = "H0p",
   cell.weights = "observations"
 )
 
-fit_rep_subjects
-fit_rep_observations
+fit_brdu_subjects
+fit_brdu_observations
+
 ```
 
 For relative marginal effects, `cell.weights = "subjects"` targets a typical
 subject-condition cell, while `cell.weights = "observations"` targets a typical
-replicate observation.
+replicate observation. In the example, the numbers of replicates are identical 
+and therefore, the results are identical.
+
+## Term-specific effect plots
+
+The default plot method displays the estimated cell-level relative effects.
+
+```{r plot-cell-effects, fig.width=7, fig.height=4}
+plot(fit_shoulder)
+```
+
+If factor-specific information is requested by setting `Factor.Information = TRUE`,
+the plot method can also display estimated relative effects and confidence
+intervals for selected model terms. This is useful when the scientific question
+concerns a main effect or interaction rather than all factorial cells.
+
+
+```{r}
+fit_shoulder_info <- nparLD(
+  resp ~ group1 * group2 * time,
+  data = shoulder,
+  subject = "subject",
+  hypothesis = "H0p",
+  Factor.Information = TRUE
+)
+
+plot(fit_shoulder_info, term = "group1:time")
+```
+
+Several terms can be displayed in one faceted plot.
+
+```{r}
+plot(fit_shoulder_info, term = c("time", "group1:time"))
+```
+The horizontal reference line at 0.5 marks the value corresponding to no tendency
+relative to the reference distribution. Values above 0.5 indicate a tendency
+toward larger responses, whereas values below 0.5 indicate a tendency toward
+smaller responses.
 
 ## Test statistics and multiple contrasts
 

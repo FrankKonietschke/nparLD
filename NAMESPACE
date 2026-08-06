@@ -2,6 +2,7 @@
 
 S3method(plot,nparld_fit)
 S3method(plot,nparld_mctp)
+S3method(print,nparld_covarianceinfo)
 S3method(print,nparld_factorinfo)
 S3method(print,nparld_fit)
 S3method(print,nparld_mctp)

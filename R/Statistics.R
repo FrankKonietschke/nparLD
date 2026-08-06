@@ -163,101 +163,63 @@
 #*******************************************************************************
 # Function for Hypotheses Matrices
 
-HC <- function(fl, art=c("Hyp", "CI"),perm_names, names){
-  # nf: number of factors involved
-  # fl: vector of factorlevels, i.e. (a, b, c, ....) of size nf
+HC <- function(fl, art = c("Hyp", "CI"), perm_names, names) {
+
+  art <- match.arg(art)
   nf <- length(fl)
-  switch(art, Hyp={
 
-    P <- function(x){
-      P <- diag(x) - matrix(1/x, ncol=x, nrow=x)
-      return(P)}
-  },
-  CI = {
+  if (art == "Hyp") {
+    P <- function(x) {
+      diag(x) - matrix(1 / x, ncol = x, nrow = x)
+    }
+  } else {
+    P <- function(x) {
+      diag(x)
+    }
+  }
 
-    P <- function(x){return(diag(x))}
+  One <- function(x) {
+    matrix(1 / x, nrow = 1, ncol = x)
+  }
+
+  kp <- function(A) {
+    out <- A[[1]]
+    if (length(A) > 1L) {
+      for (i in 2:length(A)) {
+        out <- out %x% A[[i]]
+      }
+    }
+    out
+  }
+
+  if (is.null(dim(perm_names))) {
+    perm_names <- matrix(perm_names, nrow = 1)
+  }
+
+  perm_names <- as.matrix(perm_names)
+
+  fac_names <- apply(perm_names, 1, function(x) {
+    paste(names[which(x == 1)], collapse = ":")
   })
-  # scaled one-vectors
-  One <- function(x){
-    I <- t(matrix(1/x, ncol=1, nrow=x))
-    return(I)
-  }
 
-  if (nf>1){
-    # number of hypotheses
-    tmp <- 0
-    for (i in 1:nf){
-      tmp <- c(tmp, choose(nf, i))
-      nh <- sum(tmp)
-    }
+  hypo <- vector("list", nrow(perm_names))
 
-    # calculate the permutation of the names
-fac_names <- apply(perm_names, 1, function(x){
-  paste(names[which(x == 1)], collapse=":")
-})
+  for (i in seq_len(nrow(perm_names))) {
 
-    #nh: Number of Hypotheses
-    # function for calculating the kronecker product of several matrices
-    kp <- function(A){
-      kp <- A[[1]]
-      for (i in 2: length(A)){
-        kp <- kp %x% A[[i]]
+    mats <- vector("list", nf)
+
+    for (j in seq_len(nf)) {
+      if (perm_names[i, j] == 1) {
+        mats[[j]] <- P(fl[j])
+      } else {
+        mats[[j]] <- One(fl[j])
       }
-      return(kp)
     }
 
-    # scaled One-vectors for all factors
-    A <- list()
-    for (i in 1:nf){
-      A[[i]] <- One(fl[i])
-    }
-    A_alt <- A
-
-    # P-matrices for all factors
-    B <- list()
-    for (i in 1:nf){
-      B[[i]] <- P(fl[i])
-    }
-
-
-    # calculate all combinations of elements of A and B (except all from A and all from B)
-    n1 <- c(0, 1)
-    liste <- vector("list", nf)
-    for (i in 1:nf){
-      liste[[i]] <- n1
-    }
-    G <- expand.grid(liste)
-    G <- G[2:(dim(G)[[1]]-1),]        # 1 means A
-
-    # list of all combinations of A and B
-    C <- list()
-    for (i in 1: dim(G)[1]){
-      index <- which(G[i,]==1)
-      for (j in 1:length(index)){
-        A[[index[j]]] <- B[[index[j]]]
-      }
-      C[[i]] <- A
-      A <- A_alt
-    }
-
-
-    # calculation of the hypotheses matrices (except for the nf-fold interaction)
-    hypo <- vector("list", nh)
-    for (i in 1:(nh-1)){
-      C_tmp <- C[[i]]
-      hypo[[i]] <- kp(C_tmp)
-    }
-    # nf-fold interaction
-    hypo[[nh]] <- kp(B)
+    hypo[[i]] <- kp(mats)
   }
 
-  else {
-    hypo <- list()
-    hypo[[1]] <- P(fl)
-    fac_names <- names
-  }
-
-  return(list(Matrix=hypo, Namen=fac_names))
+  list(Matrix = hypo, Namen = fac_names)
 }
 
 
@@ -1563,46 +1525,63 @@ list(
 #*******************************************************************************
 # Multiple Contrast Tests
 #*******************************************************************************
-
-.nparld_build_contrast_matrix <- function(contrast, H){
+.nparld_build_contrast_matrix <- function(contrast, H) {
 
   k <- nrow(H)
 
-  # default: identity contrasts
-  if (length(contrast) == 1) {
-    CC <- diag(k)
-    rownames(CC) <- rownames(diag(k))
+  if (!is.numeric(k) || length(k) != 1 || k < 2) {
+    stop("At least two marginal levels are required for contrasts.", call. = FALSE)
   }
 
-  if (length(contrast) == 2) {
+  if (length(contrast) != 2L) {
+    stop("A named or user-defined contrast requires a second contrast argument.",
+         call. = FALSE)
+  }
 
-    if (is.character(contrast[[2]])) {
+  if (is.character(contrast[[2]])) {
 
-      if (!requireNamespace("multcomp", quietly = TRUE))
-        stop("Package 'multcomp' required for built-in contrasts")
-
-      CC <- multcomp::contrMat(rep(1, k), type = contrast[[2]])
+    if (!requireNamespace("multcomp", quietly = TRUE)) {
+      stop("Package 'multcomp' required for built-in contrasts.", call. = FALSE)
     }
 
-    if (is.numeric(contrast[[2]])) {
-      if (length(contrast[[2]]) != k)
-        stop("Contrast length does not match number of factor levels.")
-      CC <- matrix(contrast[[2]], ncol = k)
-      rownames(CC) <- "Custom"
+    CC <- multcomp::contrMat(rep(1, k), type = contrast[[2]])
+  }
+
+  if (is.numeric(contrast[[2]])) {
+
+    if (length(contrast[[2]]) != k) {
+      stop("Contrast length does not match number of marginal levels.",
+           call. = FALSE)
     }
 
-    if (is.matrix(contrast[[2]])) {
-      CC <- contrast[[2]]
-      if (is.null(rownames(CC))) {
-        rownames(CC) <- paste0("C", seq_len(nrow(CC)))
-      }
+    CC <- matrix(contrast[[2]], nrow = 1)
+    rownames(CC) <- "Custom"
+  }
+
+  if (is.matrix(contrast[[2]])) {
+
+    CC <- contrast[[2]]
+
+    if (ncol(CC) != k) {
+      stop("Contrast matrix must have one column for each marginal level.",
+           call. = FALSE)
+    }
+
+    if (is.null(rownames(CC))) {
+      rownames(CC) <- paste("C", seq_len(nrow(CC)))
     }
   }
 
-  # center contrasts
-  if (any(rowSums(CC) != 0)) {
-    rows <- which(rowSums(CC) != 0)
-    CC[rows, ] <- CC[rows, ] - rowMeans(CC)[rows]
+  if (!exists("CC", inherits = FALSE)) {
+    stop("Invalid contrast specification.", call. = FALSE)
+  }
+
+  rs <- rowSums(CC)
+  rows <- which(abs(rs) > sqrt(.Machine$double.eps))
+
+  if (length(rows) > 0L) {
+    CC[rows, ] <- CC[rows, , drop = FALSE] -
+      rowMeans(CC[rows, , drop = FALSE])
   }
 
   CC

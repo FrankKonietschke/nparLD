@@ -11,6 +11,8 @@
 * Added rank- and pseudo-rank-based inference through a unified interface.
 * Added the argument `covariance`, which optionally includes the estimated covariance matrix in the output.
 * Added updated documentation, examples, README, vignette, and example datasets.
+* Added the `brdu` data set for illustrating dependent replicate measurements.
+* Added term-specific plots of factor-information estimates and confidence intervals via `plot(fit, term = ...)`.
 
 ## Interface changes
 

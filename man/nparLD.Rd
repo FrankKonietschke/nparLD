@@ -141,15 +141,75 @@ For hypotheses in marginal distribution functions, dependent replicates are
 handled by averaging rank or pseudo-rank scores within subject-condition cells.
 }
 \examples{
-set.seed(123)
-dat <- data.frame(
-  subject = rep(1:10, each = 4),
-  time = rep(1:4, times = 10),
-  y = rnorm(40)
+## One repeated-measures factor: dental data
+data(dental)
+
+fit_dental <- nparLD(
+  resp ~ time,
+  data = dental,
+  subject = "subject",
+  hypothesis = "H0p"
 )
-fit <- nparLD(y ~ time, data = dat, subject = "subject",
-              hypothesis = "H0p")
-fit
+
+fit_dental
+
+## Crossed factorial longitudinal design: shoulder data
+data(shoulder)
+
+fit_shoulder <- nparLD(
+  resp ~ group1 * group2 * time,
+  data = shoulder,
+  subject = "subject",
+  hypothesis = "H0p"
+)
+
+fit_shoulder
+
+## Multiple contrast procedure for an interaction
+fit_contrast <- nparLD(
+  resp ~ group1 * group2 * time,
+  data = shoulder,
+  subject = "subject",
+  hypothesis = "H0p",
+  contrast = list("group1:time")
+)
+
+fit_contrast$MCTP
+print(fit_contrast$MCTP, matrix = TRUE)
+
+## Missing response values
+dat_miss <- dental
+dat_miss$resp[c(2, 7, 12)] <- NA
+
+fit_miss <- nparLD(
+  resp ~ time,
+  data = dat_miss,
+  subject = "subject",
+  hypothesis = "H0p"
+)
+
+fit_miss
+
+## Dependent replicate measurements: BrdU data
+data(brdu)
+
+fit_brdu <- nparLD(
+  resp ~ dose,
+  data = brdu,
+  subject = "culture",
+  replicate = "replicate",
+  hypothesis = "H0p",
+  cell.weights = "subjects"
+)
+
+fit_brdu
+
+\dontrun{
+## Graphical displays
+plot(fit_dental)
+plot(fit_shoulder)
+plot(fit_contrast$MCTP)
+}
 
 
 }
