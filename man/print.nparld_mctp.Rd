@@ -4,18 +4,29 @@
 \alias{print.nparld_mctp}
 \title{Print nparLD multiple contrast results}
 \usage{
-\method{print}{nparld_mctp}(x, digits = 4, matrix = FALSE, ...)
+\method{print}{nparld_mctp}(x, digits = 4, show.matrix = FALSE, ...)
 }
 \arguments{
 \item{x}{An object of class \code{"nparld_mctp"}.}
 
-\item{digits}{Number of digits.}
+\item{digits}{Number of digits used for printing numerical results.}
 
-\item{matrix}{Logical. If \code{TRUE}, print the contrast matrix used in the
+\item{show.matrix}{Logical. If \code{TRUE}, print the contrast matrix used in the
 multiple contrast procedure.}
 
 \item{...}{Further arguments.}
 }
 \description{
-Print nparLD multiple contrast results
+Prints the global and local results of a multiple contrast test procedure.
+The local results include contrast estimates, standard errors, simultaneous
+confidence limits, test statistics, adjusted p-values, and degrees of freedom.
+The contrast matrix can optionally be displayed with
+\code{show.matrix = TRUE}.
+}
+\details{
+The method prints the global multiple contrast test and the local contrast
+results, including estimates, standard errors, simultaneous confidence
+limits, test statistics, adjusted p-values, and degrees of freedom. The
+contrast matrix is stored in \code{x$Contrast.Matrix} and is printed only
+when \code{show.matrix = TRUE}.
 }

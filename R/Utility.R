@@ -1,63 +1,118 @@
 #*******************************************************************************
 # Output Functions
 #*******************************************************************************
+
 utils::globalVariables(c(".data", "RTE", "lower", "upper"))
+
 #' Print nparLD fit
 #'
-#' @param x An object of class \code{nparld_fit}.
+#' Prints the main results of a fitted \code{nparLD()} model, including the
+#' detected design, hypothesis type, ranking method, estimated relative effects,
+#' and global WTS and ATS results. Optional components such as factor-specific
+#' information, multiple contrast results, covariance matrices, and permutation
+#' tests are displayed when available.
+#'
+#' @param x An object of class \code{"nparld_fit"}.
+#'
+#' @param x An object of class \code{"nparld_fit"}.
+#' @param digits Number of digits used for printed numerical results.
 #' @param ... Further arguments.
+#'
+#' @details
+#' The print method displays the detected design, sample size information,
+#' hypothesis type, ranking method, estimated relative effects, and global WTS
+#' and ATS results. Optional components are printed when available, including
+#' factor-specific information, multiple contrast results, covariance matrices,
+#' and permutation test results.
 #' @export
-print.nparld_fit <- function(x, ...) {
+print.nparld_fit <- function(x, digits = 4, ...) {
 
-  cat("\n ---- Nonparametric Longitudinal Analysis ---- \n")
+  cat("\nNonparametric Longitudinal Analysis\n")
   cat("-------------------------------------------------\n")
 
   if (!is.null(x$Design)) {
-  cat(" #Longitudinal Design:", x$Design, "\n", sep="")
-  if(!is.null(x$wholeplots)){cat(" #Whole-Plot-Factors:", x$wholeplots, "\n", sep = "")}
-  cat(" #Sub-Plot-Factors:", x$subplots, "\n", sep = "") }
-  if (!is.null(x$N.info)) cat(" #Number of subjects:", x$N.info, "\n", sep = "")
-  cat(" #Hypotheses:", x$text.hypotheses, "\n", sep = "") 
-  cat(" #Type of ranking:", x$text.ranks, "\n", sep = "") 
-  if(x$hypothesis=="H0p") cat(" #CI Method:", x$CI.method, "\n", sep="")
- 
+    cat("Design: ", x$Design, "\n", sep = "")
 
-  cat("\n Estimated relative effects \n")
-  cat("-------------------------------------------------\n")
-  print(x$effects)
-  if(!is.null(x$factor.info)) print(x$factor.info)
+    if (!is.null(x$wholeplots) && length(x$wholeplots) > 0L) {
+      cat("Whole-plot factors: ", paste(x$wholeplots, collapse = ", "), "\n", sep = "")
+    }
 
-  cat("\n Global Test Results: \n")
-   cat("-------------------------------------------------\n")
-  cat("\nWald-Type Statistic (WTS)\n")
-  print(round(x$WTS, 4))
-
-  cat("\nANOVA-Type Statistic (ATS)\n")
-  print(round(x$ATS, 4))
-
- 
-  if(!is.null(x$MCTP)) print(x$MCTP)
-
-  if(!is.null(x$covariance.info)) print(x$covariance.info)
-
-  if (!is.null(x$perm) && isTRUE(x$perm$available)) {
-    
-    cat("\nPermutation Test (Studentized):\n")
-    cat("-------------------------------------------------\n")
-    print(x$perm$table)
+    if (!is.null(x$subplots) && length(x$subplots) > 0L) {
+      cat("Subplot factors: ", paste(x$subplots, collapse = ", "), "\n", sep = "")
+    }
   }
 
+  if (!is.null(x$N.info)) {
+    cat("Number of subjects: ", x$N.info, "\n", sep = "")
+  }
+
+  if (!is.null(x$text.hypotheses)) {
+    cat("Hypotheses: ", x$text.hypotheses, "\n", sep = "")
+  }
+
+  if (!is.null(x$text.ranks)) {
+    cat("Ranking: ", x$text.ranks, "\n", sep = "")
+  }
+
+  if (!is.null(x$hypothesis) && identical(x$hypothesis, "H0p") &&
+      !is.null(x$CI.method)) {
+    cat("Confidence interval method: ", x$CI.method, "\n", sep = "")
+  }
+
+  cat("\nEstimated relative effects\n")
+  cat("-------------------------------------------------\n")
+  print(x$effects, digits = digits)
+
+  if (!is.null(x$factor.info)) {
+    cat("\nFactor-specific relative effects\n")
+    cat("-------------------------------------------------\n")
+    print(x$factor.info, digits = digits)
+  }
+
+  if (!is.null(x$WTS) || !is.null(x$ATS)) {
+    cat("\nGlobal test results\n")
+    cat("-------------------------------------------------\n")
+  }
+
+  if (!is.null(x$WTS)) {
+    cat("\nWald-type statistic (WTS)\n")
+    print(round(x$WTS, digits))
+  }
+
+  if (!is.null(x$ATS)) {
+    cat("\nANOVA-type statistic (ATS)\n")
+    print(round(x$ATS, digits))
+  }
+
+  if (!is.null(x$MCTP)) {
+    print(x$MCTP, digits = digits)
+  }
+
+  if (!is.null(x$covariance.info)) {
+    print(x$covariance.info, digits = digits)
+  }
+
+  if (!is.null(x$perm) && isTRUE(x$perm$available)) {
+    cat("\nPermutation test (studentized)\n")
+    cat("-------------------------------------------------\n")
+    print(x$perm$table, digits = digits)
+  }
 
   invisible(x)
 }
 
 #' Print nparLD covariance matrix
 #'
-#' @param x An object of class \code{nparld_covarianceinfo}.
-#' @param digits Number of digits.
+#' Displays the estimated covariance matrix of the relative effect estimator. 
+#'
+#' @param x An object of class \code{"nparld_covarianceinfo"}.
+#' @param digits Number of digits used for printing numerical results.
 #' @param ... Further arguments.
+#'
+#' @details
+#' The printed matrix is the estimated covariance matrix used for the selected
+#' hypothesis. It is returned when \code{covariance = TRUE}.
 #' @export
-
 print.nparld_covarianceinfo <- function(x, digits = 4, ...) {
 
   cat("\nEstimated covariance matrix\n")
@@ -70,23 +125,37 @@ print.nparld_covarianceinfo <- function(x, digits = 4, ...) {
 
 #' Print nparLD factor information
 #'
-#' @param x An object of class \code{nparld_factorinfo}.
-#' @param digits Number of digits.
+#' Prints factor-specific relative effects, standard errors, and confidence
+#' limits for the main effects and interactions of an \code{nparLD()} fit.
+#' Factor information is returned when the model is fitted with
+#' \code{Factor.Information = TRUE} and can also be displayed graphically with
+#' \code{plot(fit, term = ...)}.
+#'
+#' @param x An object of class \code{"nparld_factorinfo"}.
+#' @param digits Number of digits used for printing numerical results.
 #' @param ... Further arguments.
+#'
+#' @details
+#' Factor information consists of term-specific relative effects, standard
+#' errors, and confidence limits for main effects and interactions. These
+#' summaries are returned when \code{Factor.Information = TRUE} and can be
+#' visualized with \code{plot(fit, term = ...)}.
+#'
 #' @export
-
 print.nparld_factorinfo <- function(x, digits = 4, ...) {
 
-  cat("\nFactor Information\n")
-  cat("------------------\n")
+  cat("\nFactor-specific relative effects\n")
+  cat("-------------------------------------------------\n")
 
-  for(i in seq_along(x)){
+  for (i in seq_along(x)) {
 
-    cat("\nFactor:", names(x)[i], "\n\n")
+    cat("\nTerm: ", names(x)[i], "\n", sep = "")
 
-    tab <- x[[i]]
+    tab <- as.data.frame(x[[i]])
 
-    tab[] <- lapply(tab, function(z) round(z, digits))
+    num_cols <- vapply(tab, is.numeric, logical(1))
+
+    tab[num_cols] <- lapply(tab[num_cols], round, digits = digits)
 
     print(tab)
   }
@@ -94,70 +163,134 @@ print.nparld_factorinfo <- function(x, digits = 4, ...) {
   invisible(x)
 }
 
-
 #' Summarize an nparLD fit
 #'
-#' @param object An object of class \code{nparld_fit}.
+#' Extracts the main components of a fitted \code{nparLD()} object into a
+#' structured summary object. The summary is useful for inspecting, printing, or
+#' programmatically accessing the main results without working directly with all
+#' internal components of the fitted object.
+#'
+#' @param object An object of class \code{"nparld_fit"}.
+#'
+#' @param object An object of class \code{"nparld_fit"}.
 #' @param ... Further arguments passed to or from other methods.
 #'
-#' @return An object of class \code{summary.nparld_fit}.
+#' @details
+#' The summary method returns a structured list containing the main components
+#' of the fitted object. In contrast to \code{print()}, which is mainly intended
+#' for console display, \code{summary()} is useful for storing or extracting the
+#' main results programmatically.
+#'
+#' @return An object of class \code{"summary.nparld_fit"} containing selected
+#'   components of the fitted model.
+#'
 #' @export
 summary.nparld_fit <- function(object, ...) {
 
   res <- list(
     Design = object$Design,
-    N = object$N.info,
+    wholeplots = object$wholeplots,
+    subplots = object$subplots,
+    N.info = object$N.info,
+    hypothesis = object$hypothesis,
     effects = object$effects,
+    factor.info = object$factor.info,
     WTS = object$WTS,
     ATS = object$ATS
   )
-  
-  if(!is.null(object$MCTP)){
 
-    res$MCTP <- object$MCTP}
-  # --- NEW: add permutation results ---
+  if (!is.null(object$MCTP)) {
+    res$MCTP <- object$MCTP
+  }
+
+  if (!is.null(object$covariance.info)) {
+    res$covariance.info <- object$covariance.info
+  }
+
   if (!is.null(object$perm) && isTRUE(object$perm$available)) {
     res$Permutation <- object$perm
   }
+
+  res <- Filter(Negate(is.null), res)
 
   class(res) <- "summary.nparld_fit"
   res
 }
 
-#' Print Summary nparLD Fit
+#' Print summary of an nparLD fit
 #'
-#' @param x An object of class \code{nparld_fit}.
-#' @param digits Number of digits.
+#' Prints the main components of a summarized \code{nparLD()} fit, including
+#' design information, hypothesis type, estimated relative effects, and global
+#' WTS and ATS results. Optional components such as factor-specific information,
+#' multiple contrast results, covariance matrices, and permutation tests are
+#' displayed when available.
+#'
+#' @param x An object of class \code{"summary.nparld_fit"}.
+#' @param digits Number of digits used for printing numerical results.
 #' @param ... Further arguments.
+#'
 #' @export
 print.summary.nparld_fit <- function(x, digits = 4, ...) {
 
-  cat("\nDesign:\n")
-  cat(x$Design, "\n")
+  cat("\nSummary of Nonparametric Longitudinal Analysis\n")
+  cat("-------------------------------------------------\n")
 
-  cat("\nNumber of subjects:", x$N, "\n")
-
-  cat("\nEffects:\n")
-  print(x$effects)
-
-  cat("\nWTS:\n")
-  print(round(x$WTS, digits))
-
-  cat("\nATS:\n")
-  print(round(x$ATS, digits))
-
-  if(!is.null(x$MCTP)){
-
-    cat("MCTP: \n")
-    print(x$MCTP)
+  if (!is.null(x$Design)) {
+    cat("Design: ", x$Design, "\n", sep = "")
   }
 
-  # --- NEW: permutation output ---
-  if (!is.null(x$Permutation) && isTRUE(x$Permutation$available)) {
-    
-    cat("\nPermutation Test (Studentized):\n")
-    cat("----------------------------------\n")
-    print(round(x$Permutation$table, digits))
+  if (!is.null(x$wholeplots) && length(x$wholeplots) > 0L) {
+    cat("Whole-plot factors: ",
+        paste(x$wholeplots, collapse = ", "), "\n", sep = "")
+  }
+
+  if (!is.null(x$subplots) && length(x$subplots) > 0L) {
+    cat("Subplot factors: ",
+        paste(x$subplots, collapse = ", "), "\n", sep = "")
+  }
+
+  if (!is.null(x$hypothesis)) {
+    cat("Hypothesis: ", x$hypothesis, "\n", sep = "")
+  }
+
+if (!is.null(x$N.info)) {
+  cat("Number of subjects: ", x$N.info, "\n", sep = "")
+}
+
+  if (!is.null(x$effects)) {
+    cat("\nEstimated relative effects\n")
+    cat("-------------------------------------------------\n")
+    print(x$effects, digits = digits)
+  }
+
+  if (!is.null(x$factor.info)) {
+    print(x$factor.info, digits = digits)
+  }
+
+  if (!is.null(x$WTS)) {
+    cat("\nWald-type statistic (WTS)\n")
+    cat("-------------------------------------------------\n")
+    print(round(x$WTS, digits))
+  }
+
+  if (!is.null(x$ATS)) {
+    cat("\nANOVA-type statistic (ATS)\n")
+    cat("-------------------------------------------------\n")
+    print(round(x$ATS, digits))
+  }
+
+  if (!is.null(x$MCTP)) {
+    print(x$MCTP, digits = digits)
+  }
+
+  if (!is.null(x$covariance.info)) {
+    print(x$covariance.info, digits = digits)
+  }
+
+  if (!is.null(x$Permutation) && !is.null(x$Permutation$table)) {
+    cat("\nPermutation test\n")
+    cat("-------------------------------------------------\n")
+    print(x$Permutation$table, digits = digits)
   }
 
   invisible(x)
@@ -165,69 +298,101 @@ print.summary.nparld_fit <- function(x, digits = 4, ...) {
 
 #' Print nparLD multiple contrast results
 #'
+#' Prints the global and local results of a multiple contrast test procedure.
+#' The local results include contrast estimates, standard errors, simultaneous
+#' confidence limits, test statistics, adjusted p-values, and degrees of freedom.
+#' The contrast matrix can optionally be displayed with
+#' \code{show.matrix = TRUE}.
+#'
 #' @param x An object of class \code{"nparld_mctp"}.
-#' @param digits Number of digits.
-#' @param matrix Logical. If \code{TRUE}, print the contrast matrix used in the
+#' @param x An object of class \code{"nparld_mctp"}.
+#' @param digits Number of digits used for printing numerical results.
+#' @param show.matrix Logical. If \code{TRUE}, print the contrast matrix used in the
 #'   multiple contrast procedure.
 #' @param ... Further arguments.
+#'
+#' @details
+#' The method prints the global multiple contrast test and the local contrast
+#' results, including estimates, standard errors, simultaneous confidence
+#' limits, test statistics, adjusted p-values, and degrees of freedom. The
+#' contrast matrix is stored in \code{x$Contrast.Matrix} and is printed only
+#' when \code{show.matrix = TRUE}.
 #' @export
-print.nparld_mctp <- function(x, digits = 4, matrix = FALSE, ...) {
+print.nparld_mctp <- function(x, digits = 4, show.matrix = FALSE, ...) {
 
-  cat("\n Multiple Contrast Test Procedure \n")
+  cat("\nMultiple contrast test procedure\n")
   cat("-------------------------------------------------\n")
 
   if (!is.null(x$Factor)) {
-    cat(" Factor or interaction:", x$Factor, "\n", sep = "")
+    cat("Factor or interaction: ", x$Factor, "\n", sep = "")
   }
 
   if (!is.null(x$sci.method) && !is.na(x$sci.method)) {
-    cat(" SCI method:", x$sci.method, "\n", sep = "")
+    cat("SCI method: ", x$sci.method, "\n", sep = "")
   }
 
   if (!is.null(x$Global.Result)) {
-    cat("\n Global result \n")
+    cat("\nGlobal result\n")
     cat("-------------------------------------------------\n")
     print(round(x$Global.Result, digits = digits))
   }
 
   if (!is.null(x$Local.Results)) {
-    cat("\n Local contrast results \n")
+    cat("\nLocal contrast results\n")
     cat("-------------------------------------------------\n")
     print(round(x$Local.Results, digits = digits))
   }
 
   if (!is.null(x$Contrast.Matrix)) {
-    if (isTRUE(matrix)) {
-      cat("\n Contrast matrix \n")
+    if (isTRUE(show.matrix)) {
+      cat("\nContrast matrix\n")
       cat("-------------------------------------------------\n")
       print(round(x$Contrast.Matrix, digits = digits))
     } else {
-      cat("\n Contrast matrix: available in component `Contrast.Matrix`.\n")
-      cat(" To print it, use `print(x, matrix = TRUE)` on the MCTP object.\n")
+      cat("\nContrast matrix: available in component `Contrast.Matrix`.\n")
+      cat("Use `print(x, show.matrix = TRUE)` to display it.\n")
     }
   }
 
   invisible(x)
 }
 
-
 #' Plot nparLD results
+#'
+#' Displays graphical summaries of estimated relative effects from an
+#' \code{nparLD()} fit. By default, the method plots the cell-level relative
+#' effects stored in \code{x$effects}. If \code{term} is supplied, it plots
+#' factor-specific relative effects and confidence intervals for selected main
+#' effects or interactions. Term-specific plots require that the model was fitted
+#' with \code{Factor.Information = TRUE}.
 #'
 #' @param x An object of class \code{"nparld_fit"}.
 #' @param term Optional character vector specifying one or more model terms for
 #'   which factor-specific relative effects and confidence intervals should be
 #'   plotted. The requested terms require \code{Factor.Information = TRUE} in the
-#'   original call to \code{nparLD()}.
+#'   original call to \code{nparLD()}. If \code{term = NULL}, the cell-level
+#'   relative effects in \code{x$effects} are plotted.
 #' @param xlab Optional x-axis label.
-#' @param ylab Optional y-axis label.
+#' @param ylab Optional y-axis label. The default is \code{"Relative effect"}.
 #' @param main Optional plot title.
 #' @param legend.title Optional legend title.
-#' @param ref.line Optional horizontal reference line.
+#' @param ref.line Optional horizontal reference line. The default is \code{0.5}.
 #' @param ref.lty Line type for the reference line.
 #' @param ref.col Colour of the reference line.
 #' @param ... Further arguments.
 #'
+#' @details
+#' The default plot displays the estimated cell-level relative effects. If
+#' \code{term} is supplied, the plot displays factor-specific relative effects
+#' and confidence intervals for the selected main effects or interactions. This
+#' requires that the model was fitted with \code{Factor.Information = TRUE}. 
+#' The horizontal reference line at 0.5 indicates no tendency relative to the
+#' reference distribution. Values above 0.5 indicate a tendency toward larger
+#' responses, whereas values below 0.5 indicate a tendency toward smaller
+#' responses.
+#'
 #' @examples
+#' \donttest{
 #' data(shoulder)
 #'
 #' fit <- nparLD(
@@ -238,9 +403,13 @@ print.nparld_mctp <- function(x, digits = 4, matrix = FALSE, ...) {
 #'   Factor.Information = TRUE
 #' )
 #'
+#' ## Cell-level relative effects
 #' plot(fit)
+#'
+#' ## Factor-specific relative effects and confidence intervals
 #' plot(fit, term = "time")
 #' plot(fit, term = "group1:time")
+#' }
 #'
 #' @export
 plot.nparld_fit <- function(x,
@@ -268,17 +437,17 @@ plot.nparld_fit <- function(x,
     ))
   }
 
-.nparld_plot_factor_information(
-  x = x,
-  term = term,
-  reference = ref.line,
-  ylab = ylab,
-  xlab = xlab,
-  main = main,
-  ref.lty = ref.lty,
-  ref.col = ref.col,
-  ...
-)
+  .nparld_plot_factor_information(
+    x = x,
+    term = term,
+    reference = ref.line,
+    ylab = ylab,
+    xlab = xlab,
+    main = main,
+    ref.lty = ref.lty,
+    ref.col = ref.col,
+    ...
+  )
 }
 
 .nparld_plot_cell_effects <- function(x,
@@ -545,35 +714,73 @@ return(dat)
 
 
 ##################################################################
-#Plot the SCI
+# Plot simultaneous confidence intervals
 
-#' Plot multiple contrast test results
+#' Plot nparLD multiple contrast results
 #'
-#' @param x An object of class \code{nparld_mctp}.
-#' @param xlab Label for the x-axis.
-#' @param main Plot title.
+#' Displays simultaneous confidence intervals for local contrasts from a
+#' multiple contrast test procedure. The plot shows the contrast estimates
+#' together with their simultaneous confidence limits and a vertical reference
+#' line at zero. Intervals excluding zero are highlighted by default.
+#'
+#' @param x An object of class \code{"nparld_mctp"}.
+#' @param xlab Label for the x-axis. The default is \code{"Contrast effect"}.
+#' @param ylab Label for the y-axis. The default is an empty label.
+#' @param main Optional plot title.
+#' @param ref.line Optional vertical reference line. The default is \code{0}.
+#' @param ref.lty Line type for the reference line.
+#' @param ref.col Colour of the reference line.
 #' @param pch Plotting character.
 #' @param lwd Line width.
-#' @param col Optional colors.
+#' @param col Optional colors for confidence intervals and point estimates. If
+#'   \code{NULL}, intervals excluding zero are shown in red and intervals
+#'   including zero are shown in black.
 #' @param ... Further graphical arguments.
+#'
+#' @details
+#' Displays simultaneous confidence intervals for the local contrast results
+#' returned by the multiple contrast test procedure. The vertical reference line
+#' at zero indicates the null value for contrast effects.
+#'
+#' @examples
+#' \donttest{
+#' data(shoulder)
+#'
+#' fit <- nparLD(
+#'   resp ~ group1 * group2 * time,
+#'   data = shoulder,
+#'   subject = "subject",
+#'   hypothesis = "H0p",
+#'   contrast = list("time", "Dunnett")
+#' )
+#'
+#' plot(fit$MCTP)
+#' }
+#'
 #' @export
 plot.nparld_mctp <- function(x,
                              xlab = "Contrast effect",
+                             ylab = "",
                              main = NULL,
+                             ref.line = 0,
+                             ref.lty = 2,
+                             ref.col = "gray50",
                              pch = 19,
                              lwd = 2,
                              col = NULL,
                              ...) {
 
-  if (is.null(x$Local.Results) || nrow(x$Local.Results) == 0) {
+  if (is.null(x$Local.Results) || nrow(x$Local.Results) == 0L) {
     stop("No local contrast results available.", call. = FALSE)
   }
 
   res <- x$Local.Results
 
   if (!all(c("Estimate", "lower", "upper") %in% names(res))) {
-    stop("No simultaneous confidence intervals available for this object.",
-         call. = FALSE)
+    stop(
+      "No simultaneous confidence intervals available for this object.",
+      call. = FALSE
+    )
   }
 
   est <- res$Estimate
@@ -581,7 +788,7 @@ plot.nparld_mctp <- function(x,
   upper <- res$upper
 
   labs <- rownames(res)
-  if (is.null(labs)) {
+  if (is.null(labs) || any(!nzchar(labs))) {
     labs <- paste("C", seq_len(nrow(res)))
   }
 
@@ -589,11 +796,11 @@ plot.nparld_mctp <- function(x,
   ypos <- rev(seq_len(k))
 
   if (is.null(col)) {
-    sig <- !(lower <= 0 & upper >= 0)
+    sig <- !(lower <= ref.line & upper >= ref.line)
     col <- ifelse(sig, "red3", "black")
   }
 
-  xr <- range(c(lower, upper, 0), na.rm = TRUE)
+  xr <- range(c(lower, upper, ref.line), na.rm = TRUE)
 
   if (is.null(main)) {
     main <- if (!is.null(x$Factor)) {
@@ -603,25 +810,30 @@ plot.nparld_mctp <- function(x,
     }
   }
 
-  plot(NA,
-       xlim = xr,
-       ylim = c(0.5, k + 0.5),
-       yaxt = "n",
-       ylab = "",
-       xlab = xlab,
-       main = main,
-       ...)
+  oldpar <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(oldpar), add = TRUE)
 
-  axis(2, at = ypos, labels = labs, las = 1)
-  abline(v = 0, lty = 2, col = "gray50")
+  graphics::plot(
+    NA,
+    xlim = xr,
+    ylim = c(0.5, k + 0.5),
+    yaxt = "n",
+    ylab = ylab,
+    xlab = xlab,
+    main = main,
+    ...
+  )
 
-  segments(lower, ypos, upper, ypos, lwd = lwd, col = col)
+  graphics::axis(2, at = ypos, labels = labs, las = 1)
+  graphics::abline(v = ref.line, lty = ref.lty, col = ref.col)
+
+  graphics::segments(lower, ypos, upper, ypos, lwd = lwd, col = col)
 
   cap <- 0.12
-  segments(lower, ypos - cap, lower, ypos + cap, lwd = lwd, col = col)
-  segments(upper, ypos - cap, upper, ypos + cap, lwd = lwd, col = col)
+  graphics::segments(lower, ypos - cap, lower, ypos + cap, lwd = lwd, col = col)
+  graphics::segments(upper, ypos - cap, upper, ypos + cap, lwd = lwd, col = col)
 
-  points(est, ypos, pch = pch, col = col)
+  graphics::points(est, ypos, pch = pch, col = col)
 
   invisible(x)
 }

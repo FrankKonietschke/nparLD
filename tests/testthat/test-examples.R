@@ -353,3 +353,90 @@ test_that("brdu replicate data can be analyzed", {
   expect_true(nrow(fit$effects) > 0)
 })
 
+test_that("user-defined contrast matrix is accepted", {
+  C <- rbind(
+    "2 - 1" = c(-1, 1, 0, 0),
+    "3 - 1" = c(-1, 0, 1, 0),
+    "4 - 1" = c(-1, 0, 0, 1)
+  )
+
+  fit <- nparLD(
+    resp ~ time,
+    data = dental,
+    subject = "subject",
+    hypothesis = "H0p",
+    contrast = list("time", C)
+  )
+
+  expect_equal(nrow(fit$MCTP$Local.Results), 3)
+  expect_equal(nrow(fit$MCTP$Contrast.Matrix), 3)
+})
+
+test_that("MCTP print supports show.matrix", {
+  fit <- nparLD(
+    resp ~ time,
+    data = dental,
+    subject = "subject",
+    hypothesis = "H0p",
+    contrast = list("time", "Dunnett")
+  )
+
+  expect_output(print(fit$MCTP, show.matrix = TRUE), "Contrast matrix")
+})
+
+test_that("factor-information plots can be requested by term", {
+  fit <- nparLD(
+    resp ~ group1 * group2 * time,
+    data = shoulder,
+    subject = "subject",
+    hypothesis = "H0p",
+    Factor.Information = TRUE
+  )
+
+  expect_s3_class(plot(fit, term = "time"), "ggplot")
+  expect_s3_class(plot(fit, term = "group1:time"), "ggplot")
+})
+
+test_that("H0F supports observation-weighted dependent replicates", {
+
+  fit <- nparLD(
+    resp ~ dose,
+    data = brdu,
+    subject = "culture",
+    replicate = "replicate",
+    hypothesis = "H0F",
+    cell.weights = "observations"
+  )
+
+  expect_s3_class(fit, "nparld_fit")
+  expect_equal(fit$hypothesis, "H0F")
+  expect_false(is.null(fit$WTS))
+  expect_false(is.null(fit$ATS))
+})
+
+test_that("H0F replicate subject and observation weights both run", {
+
+  fit_subjects <- nparLD(
+    resp ~ dose,
+    data = brdu,
+    subject = "culture",
+    replicate = "replicate",
+    hypothesis = "H0F",
+    cell.weights = "subjects"
+  )
+
+  fit_observations <- nparLD(
+    resp ~ dose,
+    data = brdu,
+    subject = "culture",
+    replicate = "replicate",
+    hypothesis = "H0F",
+    cell.weights = "observations"
+  )
+
+  expect_s3_class(fit_subjects, "nparld_fit")
+  expect_s3_class(fit_observations, "nparld_fit")
+
+  expect_false(is.null(fit_subjects$WTS))
+  expect_false(is.null(fit_observations$WTS))
+})

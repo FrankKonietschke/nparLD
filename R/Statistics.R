@@ -412,7 +412,11 @@ HC <- function(fl, art = c("Hyp", "CI"), perm_names, names) {
 # -----------------------------
 # Helpers: covariance estimation (your block diagonal construction)
 # -----------------------------
-.nparld_estimate_sigma <- function(dat, WP.names, SP.names, N, Ntotal) {
+.nparld_estimate_sigma <- function(dat, WP.names, SP.names, N, Ntotal,
+                                   replicate = NULL,
+                                   cell.weights = c("subjects", "observations")) {
+
+  cell.weights <- match.arg(cell.weights)
 
   if (!requireNamespace("Matrix", quietly = TRUE)) {
     stop("Package 'Matrix' is required for covariance estimation (bdiag).")
@@ -473,8 +477,11 @@ HC <- function(fl, art = c("Hyp", "CI"), perm_names, names) {
           Cov_block[s, ss] <- sum((YY[, s] - Rbar[s])^2, na.rm = TRUE) /
             (lambda_i[s] * (lambda_i[s] - 1))
         } else {
-          Cov_block[s, ss] <- sum((YY[, s] - Rbar[s]) *
-                                  (YY[, ss] - Rbar[ss]), na.rm = TRUE) /
+          Cov_block[s, ss] <- sum(
+            (YY[, s] - Rbar[s]) *
+              (YY[, ss] - Rbar[ss]),
+            na.rm = TRUE
+          ) /
             ((lambda_i[s] - 1) * (lambda_i[ss] - 1) +
                sum(lambdas[, s] * lambdas[, ss]) - 1)
         }
@@ -497,10 +504,41 @@ HC <- function(fl, art = c("Hyp", "CI"), perm_names, names) {
       groupdata <- dat[dat_wp_key == wp_key, , drop = FALSE]
     }
 
-    # IMPORTANT:
     # Independent units are SUBJECTS, not subject:replicate.
     groupdata$subject <- droplevels(groupdata$subject)
     subjdat <- split(groupdata, groupdata$subject)
+
+    n_i <- length(subjdat)
+
+    if (n_i < 2L) {
+      stop("Too few subjects in whole-plot block.")
+    }
+
+    # Observation counts N_is for the observation-weighted replicate case.
+    # These are the numbers of observed replicate measurements per subplot cell
+    # within the current whole-plot group.
+    if (!is.null(replicate) && cell.weights == "observations") {
+
+      if (length(SP.names) == 0) {
+        group_sp_keys <- rep("1", nrow(groupdata))
+      } else {
+        group_sp_keys <- .nparld_make_keys(groupdata, SP.names)
+      }
+
+      N_is <- tapply(
+        !is.na(groupdata[[score_var]]),
+        factor(group_sp_keys, levels = sp_keys),
+        sum
+      )
+
+      N_is <- as.numeric(N_is)
+      names(N_is) <- sp_keys
+
+      if (any(is.na(N_is)) || any(N_is <= 0L)) {
+        stop("A whole-plot by subplot cell contains no observed rank scores.",
+             call. = FALSE)
+      }
+    }
 
     subj_vecs <- lapply(subjdat, function(df) {
 
@@ -512,18 +550,58 @@ HC <- function(fl, art = c("Hyp", "CI"), perm_names, names) {
         subj_keys <- .nparld_make_keys(df, SP.names)
       }
 
-      # mean score per subject x subplot cell
-      cell_means <- tapply(score, subj_keys, mean, na.rm = TRUE)
-
       yvec <- rep(NA_real_, length(sp_keys))
       names(yvec) <- sp_keys
 
-      if (!is.null(cell_means)) {
-        pos <- match(names(cell_means), sp_keys)
-        ok <- !is.na(pos)
+      if (!is.null(replicate) && cell.weights == "observations") {
 
-        if (any(ok)) {
-          yvec[pos[ok]] <- 1 / Ntotal * (cell_means[ok] - 1 / 2)
+        ## H0F with dependent replicates and observation-level weighting:
+        ##
+        ##   Z_iks = sum_l R_iksl
+        ##
+        ## The subject-level contribution is represented on the mean-rank
+        ## scale by n_i / N_is * Z_iks. Subjects without observations in a
+        ## cell have Z_iks = 0. This centers correctly on the sum scale and
+        ## yields
+        ##
+        ##   mean_k { n_i / N_is * Z_iks } = Rbar_is.
+        ##
+        ## The subtraction of 1/2 and division by Ntotal put the contribution
+        ## on the relative-effect scale.
+
+        cell_sums <- tapply(
+          score,
+          factor(subj_keys, levels = sp_keys),
+          sum,
+          na.rm = TRUE
+        )
+
+        cell_sums[is.na(cell_sums)] <- 0
+
+        yvec[] <- 1 / Ntotal * ((n_i / N_is) * as.numeric(cell_sums) - 1 / 2)
+
+      } else {
+
+        ## Default H0F case, including dependent replicates with
+        ## cell.weights = "subjects":
+        ##
+        ## each subject contributes the mean of its observed rank scores
+        ## within the subject-condition cell.
+
+        cell_means <- tapply(
+          score,
+          subj_keys,
+          mean,
+          na.rm = TRUE
+        )
+
+        if (!is.null(cell_means)) {
+          pos <- match(names(cell_means), sp_keys)
+          ok <- !is.na(pos)
+
+          if (any(ok)) {
+            yvec[pos[ok]] <- 1 / Ntotal * (cell_means[ok] - 1 / 2)
+          }
         }
       }
 
@@ -557,7 +635,6 @@ HC <- function(fl, art = c("Hyp", "CI"), perm_names, names) {
 
   Sigma
 }
-
 
 .nparld_check_complete_within_schedule <- function(dat, SP.names, replicate = NULL) {
   if (length(SP.names) == 0) return(invisible(TRUE))
@@ -703,6 +780,132 @@ HC <- function(fl, art = c("Hyp", "CI"), perm_names, names) {
   }
 
   invisible(TRUE)
+}
+
+.nparld_cov_H0F_replicates_observations <- function(score.data,
+                                                    subject,
+                                                    wholeplot,
+                                                    subplot,
+                                                    score,
+                                                    H = NULL,
+                                                    Nstar) {
+
+  ## H0F with dependent replicates and observation-level cell weighting.
+  ##
+  ## For each whole-plot group i and repeated-measures cell s:
+  ##
+  ##   Z_iks = sum_l R_iksl
+  ##
+  ## where R_iksl are the ordinary ranks or pseudo-ranks used for H0F.
+  ## The covariance is computed over independent subjects. The centering is
+  ## performed on the sum scale:
+  ##
+  ##   Z_iks - (N_is / n_i) * Rbar_is
+  ##
+  ## and the resulting covariance is transformed back to the mean-rank scale
+  ## by diag(1 / N_is), and finally to the relative-effect scale by 1 / Nstar^2.
+
+  if (!all(c(subject, wholeplot, subplot, score) %in% names(score.data))) {
+    stop("Internal score data do not contain the required variables.",
+         call. = FALSE)
+  }
+
+  dat <- score.data
+  dat <- dat[!is.na(dat[[score]]), , drop = FALSE]
+
+  wp.lev <- levels(factor(dat[[wholeplot]]))
+  sp.lev <- levels(factor(dat[[subplot]]))
+
+  blocks <- vector("list", length(wp.lev))
+  names(blocks) <- wp.lev
+
+  for (ii in seq_along(wp.lev)) {
+
+    gi <- wp.lev[ii]
+    di <- dat[dat[[wholeplot]] == gi, , drop = FALSE]
+
+    subj.lev <- levels(factor(di[[subject]]))
+    n_i <- length(subj.lev)
+
+    if (n_i < 2L) {
+      stop("At least two subjects are required in each whole-plot group.",
+           call. = FALSE)
+    }
+
+    ## Z_i: rows = subjects, columns = subplot cells.
+    ## Observation weighting means sum of rank scores per subject-cell.
+    Z_i <- matrix(
+      0,
+      nrow = n_i,
+      ncol = length(sp.lev),
+      dimnames = list(subj.lev, sp.lev)
+    )
+
+    N_is <- numeric(length(sp.lev))
+    names(N_is) <- sp.lev
+
+    for (ss in seq_along(sp.lev)) {
+
+      sj <- sp.lev[ss]
+      dij <- di[di[[subplot]] == sj, , drop = FALSE]
+
+      N_is[ss] <- nrow(dij)
+
+      if (N_is[ss] == 0L) {
+        stop("A whole-plot by subplot cell contains no observations.",
+             call. = FALSE)
+      }
+
+      tmp <- tapply(
+        dij[[score]],
+        factor(dij[[subject]], levels = subj.lev),
+        sum,
+        na.rm = TRUE
+      )
+
+      tmp[is.na(tmp)] <- 0
+      Z_i[, ss] <- as.numeric(tmp)
+    }
+
+    ## Cell mean ranks:
+    ## Rbar_is = sum_k Z_iks / N_is
+    Rbar_is <- colSums(Z_i) / N_is
+
+    ## Center on the sum scale:
+    ## center_is = (N_is / n_i) * Rbar_is
+    center_i <- matrix(
+      rep((N_is / n_i) * Rbar_is, each = n_i),
+      nrow = n_i,
+      ncol = length(sp.lev),
+      byrow = FALSE
+    )
+
+    Zc_i <- Z_i - center_i
+
+    ## Empirical covariance of subject-level sums.
+    V_Z_i <- crossprod(Zc_i) / (n_i - 1)
+
+    ## Transform from sum scale to cell mean-rank scale.
+    D_i <- diag(1 / N_is, nrow = length(N_is))
+    V_Rbar_i <- D_i %*% V_Z_i %*% D_i
+
+    ## Transform from mean-rank scale to theta scale.
+    blocks[[ii]] <- V_Rbar_i / (Nstar^2)
+  }
+
+  Sigma <- as.matrix(Matrix::bdiag(blocks))
+
+  cell.names <- as.vector(
+    outer(wp.lev, sp.lev, paste, sep = ":")
+  )
+
+  rownames(Sigma) <- colnames(Sigma) <- cell.names
+
+  if (!is.null(H)) {
+    Sigma <- H %*% Sigma %*% t(H)
+  }
+
+  Sigma
 }
 
 ##############################################################################################
@@ -1529,33 +1732,26 @@ list(
 
   k <- nrow(H)
 
-  if (!is.numeric(k) || length(k) != 1 || k < 2) {
-    stop("At least two marginal levels are required for contrasts.", call. = FALSE)
+  if (!is.numeric(k) || length(k) != 1L || k < 2L) {
+    stop("At least two marginal levels are required for contrasts.",
+         call. = FALSE)
   }
 
   if (length(contrast) != 2L) {
-    stop("A named or user-defined contrast requires a second contrast argument.",
-         call. = FALSE)
+    stop(
+      "Named or user-defined contrasts require a second contrast argument.",
+      call. = FALSE
+    )
   }
 
   if (is.character(contrast[[2]])) {
 
     if (!requireNamespace("multcomp", quietly = TRUE)) {
-      stop("Package 'multcomp' required for built-in contrasts.", call. = FALSE)
-    }
-
-    CC <- multcomp::contrMat(rep(1, k), type = contrast[[2]])
-  }
-
-  if (is.numeric(contrast[[2]])) {
-
-    if (length(contrast[[2]]) != k) {
-      stop("Contrast length does not match number of marginal levels.",
+      stop("Package 'multcomp' required for built-in contrasts.",
            call. = FALSE)
     }
 
-    CC <- matrix(contrast[[2]], nrow = 1)
-    rownames(CC) <- "Custom"
+    CC <- multcomp::contrMat(rep(1, k), type = contrast[[2]])
   }
 
   if (is.matrix(contrast[[2]])) {
@@ -1563,13 +1759,30 @@ list(
     CC <- contrast[[2]]
 
     if (ncol(CC) != k) {
-      stop("Contrast matrix must have one column for each marginal level.",
-           call. = FALSE)
+      stop(
+        "Contrast matrix must have one column for each marginal level of the selected term. ",
+        "Expected ", k, " columns, but got ", ncol(CC), ".",
+        call. = FALSE
+      )
     }
 
     if (is.null(rownames(CC))) {
       rownames(CC) <- paste("C", seq_len(nrow(CC)))
     }
+  }
+
+  if (is.numeric(contrast[[2]]) && !is.matrix(contrast[[2]])) {
+
+    if (length(contrast[[2]]) != k) {
+      stop(
+        "Contrast length does not match the number of marginal levels of the selected term. ",
+        "Expected ", k, " entries, but got ", length(contrast[[2]]), ".",
+        call. = FALSE
+      )
+    }
+
+    CC <- matrix(contrast[[2]], nrow = 1)
+    rownames(CC) <- "Custom"
   }
 
   if (!exists("CC", inherits = FALSE)) {

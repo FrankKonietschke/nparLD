@@ -2,17 +2,21 @@
 % Please edit documentation in R/Utility.R
 \name{print.summary.nparld_fit}
 \alias{print.summary.nparld_fit}
-\title{Print Summary nparLD Fit}
+\title{Print summary of an nparLD fit}
 \usage{
 \method{print}{summary.nparld_fit}(x, digits = 4, ...)
 }
 \arguments{
-\item{x}{An object of class \code{nparld_fit}.}
+\item{x}{An object of class \code{"summary.nparld_fit"}.}
 
-\item{digits}{Number of digits.}
+\item{digits}{Number of digits used for printing numerical results.}
 
 \item{...}{Further arguments.}
 }
 \description{
-Print Summary nparLD Fit
+Prints the main components of a summarized \code{nparLD()} fit, including
+design information, hypothesis type, estimated relative effects, and global
+WTS and ATS results. Optional components such as factor-specific information,
+multiple contrast results, covariance matrices, and permutation tests are
+displayed when available.
 }

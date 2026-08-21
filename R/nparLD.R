@@ -1,61 +1,112 @@
 #' Nonparametric Analysis of Longitudinal Data
 #'
-#' Performs nonparametric inference for longitudinal or repeated-measures data 
-#' from factorial experiments. The function supports hypotheses about marginal 
-#' distribution functions and unweighted relative marginal Mann-Whitney effects. 
-#' It allows arbitrary crossed whole-plot and subplot factors, incomplete observations, 
-#' and dependent replicate measurements.
+#' Performs nonparametric inference for longitudinal or repeated-measures data
+#' from crossed factorial experiments. The function can be used to test hypotheses in
+#' marginal distribution functions or hypotheses in unweighted relative
+#' marginal effects. It allows crossed whole-plot and sub-plot factors,
+#' missing values, and dependent replicate measurements.
 #'
-#' @param formula A model formula of the form \code{response ~ factors}. Factors 
-#' on the right-hand side may contain crossed whole-plot and subplot factors 
-#' and their interactions. 
-#' @param data A data frame containing the response, subject variable, design 
-#' factors, and optionally a replicate variable. 
-#' @param subject Character string specifying the subject identifier. 
-#' @param replicate Optional character string specifying the replicate identifier. 
-#' Replicates are assumed to be (possibly) dependent within subject-condition cells. 
-#' @param hypothesis Character string specifying the hypothesis type. Use 
-#' \code{"H0F"} for hypotheses in marginal distribution functions and 
-#' \code{"H0p"} for hypotheses in unweighted relative marginal effects. 
-#' @param effect Character string specifying whether weighted relative Mann-Whitney effects with ordinary ranks or 
-#' unweighted relative Mann-Whitney effects with pseudo-ranks shall be used. Weighted related effects depends on sample sizes and their allocations, whereas
-#' unweighted relative effects do not. In case of a balanced design (equal sample sizes), both effects are identical. 
-#' @param cell.weights Character string specifying how dependent replicates are 
-#' weighted. Use \code{"subjects"} for subject-level cell weighting and 
-#' \code{"observations"} for observation-level cell weighting. 
-#' @param contrast Optional list specifying a factor or interaction for multiple 
-#' contrast procedures.
-#' @param sci.method Method for the computation of simultaneous confidence intervals. The Fisher-transformation is default.
-#' @param alpha Significance level for tests and confidence intervals. 
-#' @param CI.method Method used for confidence intervals for relative effects. 
-#' @param covariance Logical. Should the estimated covariance matrix be returned? The default is \code{FALSE}
-#' @param Factor.Information Logical. Should factor-specific information be returned? 
-#' @param perm.test Logical. Should the paired two-time-point permutation test be 
-#' used when applicable? 
-#' @param B Number of permutation samples for the computation of the permutation test in paired data. 
+#' @param formula A model formula of the form \code{response ~ factors}. Factors
+#'   on the right-hand side may contain crossed whole-plot and subplot factors
+#'   and their interactions.
+#' @param data A data frame containing the response, subject variable, design
+#'   factors, and optionally a replicate variable.
+#' @param subject Character string specifying the subject identifier.
+#' @param replicate Optional character string specifying the replicate identifier.
+#'   Replicates can be dependent within subject-condition cells.
+#' @param cell.weights Character string specifying how dependent replicates are
+#'   weighted. Use \code{"subjects"} for subject-level cell weighting and
+#'   \code{"observations"} for observation-level cell weighting. 
+#'   For dependent replicates under \code{hypothesis = "H0F"},
+#' \code{cell.weights = "subjects"} averages rank scores within
+#' subject-condition cells before covariance estimation, whereas
+#' \code{cell.weights = "observations"} uses the sums of the observed rank
+#' scores within subject-condition cells and therefore gives more weight to
+#' subjects with more observed replicate measurements.The default is
+#'   \code{"subjects"}.
+#' @param hypothesis Character string specifying the hypothesis type. Use
+#'   \code{"H0F"} for hypotheses in marginal distribution functions and
+#'   \code{"H0p"} for hypotheses in unweighted relative marginal effects.
+#'   The latter permits unequal variances or higher-order distributional
+#'   differences under the null hypothesis and is related to the nonparametric
+#'   Behrens-Fisher problem.
+#' @param effect Character string specifying whether weighted or unweighted
+#'   relative effects are used. Use \code{"weighted"} for effects based on
+#'   ordinary ranks and a sample-size weighted reference distribution. Use
+#'   \code{"unweighted"} for effects based on pseudo-ranks and an equally
+#'   weighted factorial-cell reference distribution. Weighted effects depend on
+#'   the sample-size allocation and are mainly descriptive. Unweighted effects
+#'   are the inferential target for \code{hypothesis = "H0p"}. In balanced
+#'   designs, both effect definitions coincide. The default is
+#'   \code{effect = "unweighted"}.
+#' @param contrast Optional list specifying a factor or interaction term for
+#'   simultaneous inference. A one-element specification such as
+#'   \code{list("time")} uses the standard hypothesis matrix for the selected
+#'   model term, that is, the same contrast structure underlying the WTS and ATS
+#'   for that term. A two-element specification such as
+#'   \code{list("time", "Tukey")} or \code{list("time", "Dunnett")} applies the
+#'   named multiple contrast procedure to the marginal relative effects of the
+#'   selected term. A numeric vector or matrix may be supplied as the second
+#'   element for user-defined contrasts.
+#' @param sci.method Character string specifying the method for simultaneous
+#'   confidence intervals. Available choices are \code{"fisher"} and \code{"multi.t"}. 
+#' The default is \code{"fisher"}.
+#' @param Factor.Information Logical. If \code{TRUE}, factor-specific relative
+#'   effects, standard errors, and confidence intervals are returned. These
+#'   summaries can also be displayed with \code{plot(fit, term = ...)}.
+#' @param alpha Significance level for tests and confidence intervals. The
+#'   default is \code{alpha = 0.05}.
+#' @param CI.method Character string specifying the method for confidence intervals for 
+#' relative effects. Available choices are \code{"logit"} and \code{"normal"}. The default is \code{"logit"}.
+#' @param covariance Logical. If \code{TRUE}, the estimated covariance matrix
+#'   used for the selected hypothesis is included in the output. The default is
+#'   \code{FALSE}.
+#' @param perm.test Logical. Should the paired two-time-point permutation test be
+#'   used when applicable? This option is only available for paired designs with
+#'   two time points.
+#' @param B Number of permutation samples used for the paired permutation test.
 #'
-#' @details 
-#' The function provides rank- and pseudo-rank-based procedures for factorial 
-#' longitudinal data. The argument \code{hypothesis = "H0F"} specifies 
-#' hypotheses in marginal distribution functions. These hypotheses compare the 
-#' complete marginal distributions and may therefore detect differences in 
-#' location, scale, skewness, or other distributional features. 
-#' The argument \code{hypothesis = "H0p"} specifies hypotheses in unweighted 
-#' relative marginal effects. These effects describe the relative position of 
-#' each marginal distribution with respect to a common unweighted reference 
-#' distribution and are particularly useful for effect interpretation, multiple 
-#' contrast procedures, simultaneous confidence intervals, and graphical 
-#' summaries. 
-#' 
-#' Missing observations are allowed. Incomplete subject-condition cells 
-#' contribute where observations are available, and covariance estimation is 
-#' based on the independent subject-level units. Dependent replicate 
-#' measurements can be specified using the \code{replicate} argument. For 
-#' hypotheses in relative marginal effects, \code{cell.weights = "subjects"} 
-#' targets a typical subject-condition cell, whereas 
-#' \code{cell.weights = "observations"} targets a typical replicate observation. 
-#' For hypotheses in marginal distribution functions, dependent replicates are 
-#' handled by averaging rank or pseudo-rank scores within subject-condition cells. 
+#' @details
+#' The function provides rank- and pseudo-rank-based procedures for factorial
+#' longitudinal data. The argument \code{hypothesis = "H0F"} specifies
+#' hypotheses in marginal distribution functions. These hypotheses compare the
+#' complete marginal distributions and are tested by rank-based procedures.
+#'
+#' The argument \code{hypothesis = "H0p"} specifies hypotheses in unweighted
+#' relative marginal effects. These effects describe the relative position of
+#' each marginal distribution with respect to a common unweighted reference
+#' distribution and are particularly useful for effect interpretation, multiple
+#' contrast procedures, simultaneous confidence intervals, and graphical
+#' summaries.
+#'
+#' The \code{contrast} argument computes a multiple contrast test along with simultaneous
+#' confidence intervals for the selected model terms. A one-element specification such as 
+#' \code{list("time")} uses the same hypothesis matrix as the global test procedures (Wald-
+#' and ANOVA-type statistics) for the selected term. This
+#' provides simultaneous inference for the components of the corresponding
+#' global null hypothesis. A two-element specification such as
+#' \code{list("time", "Tukey")} or \code{list("time", "Dunnett")} first forms
+#' the marginal relative effects for the selected term and then applies the
+#' requested multiple contrast procedure. Thus, \code{list("time", "Tukey")}
+#' gives pairwise comparisons of the marginal time effects, whereas
+#' \code{list("time", "Dunnett")} compares the marginal time effects with the
+#' first time point. User-defined contrast vectors or matrices can be supplied
+#' as the second list element.
+#'
+#' Missing observations are allowed. Incomplete subject-condition cells
+#' contribute where observations are available, and covariance estimation is
+#' based on the independent subject-level units. Dependent replicate
+#' measurements can be specified using the \code{replicate} argument. For
+#' hypotheses in relative marginal effects, \code{cell.weights = "subjects"}
+#' targets a typical subject-condition cell, whereas
+#' \code{cell.weights = "observations"} targets a typical replicate observation.
+#' For hypotheses in marginal distribution functions, dependent replicates are
+#' handled by averaging rank or pseudo-rank scores within subject-condition
+#' cells.
+
+#' In case of bivariate data (e.g., before and after measurements), the function implements
+#' a studentized permutation test for testing either \code{hypothesis = "H0F"} or 
+#' \code{hypothesis = "H0p"}.
 #'
 #'
 #' @return
@@ -73,11 +124,13 @@
 #'   \item \code{effects}: a data frame with estimated relative effects. This
 #'     includes the factor-level combinations, the number of contributing
 #'     subjects and observations, the number of missing observations, the mean
-#'     rank or pseudo-rank score, the estimated relative treatment effect, and
-#'     its standard error. For \code{hypothesis = "H0p"}, confidence limits are
-#'     also returned.
-#'   \item \code{factor.info}: optional factor-specific information, returned
-#'     when \code{Factor.Information = TRUE}.
+#'     rank or pseudo-rank score, the estimated relative effect, and its
+#'     standard error. For \code{hypothesis = "H0p"}, confidence limits are also
+#'     returned.
+#'   \item \code{factor.info}: optional factor-specific relative effects,
+#'     standard errors, and confidence limits for main effects and interactions,
+#'     returned when \code{Factor.Information = TRUE}. These summaries can be
+#'     displayed with \code{plot(fit, term = ...)}.
 #'   \item \code{WTS}: Wald-type test statistics, degrees of freedom, and
 #'     p-values for the tested main effects and interactions.
 #'   \item \code{ATS}: ANOVA-type test statistics, denominator degrees of
@@ -85,9 +138,9 @@
 #'   \item \code{MCTP}: multiple contrast test results, returned when
 #'     \code{contrast} is specified. These include the selected factor or
 #'     interaction, the simultaneous confidence interval method, the global
-#'     multiple contrast test, and local contrast estimates with standard errors,
-#'     simultaneous confidence limits, test statistics, p-values, and degrees of
-#'     freedom.
+#'     multiple contrast test, local contrast estimates with standard errors,
+#'     simultaneous confidence limits, test statistics, p-values, degrees of
+#'     freedom, and the corresponding contrast matrix.
 #'   \item \code{covariance.info}: estimated covariance matrix used for the
 #'     selected hypothesis, returned when \code{covariance = TRUE}.
 #'   \item \code{perm}: permutation test results, returned when a permutation
@@ -140,7 +193,7 @@
 #' )
 #'
 #' fit_contrast$MCTP
-#' print(fit_contrast$MCTP, matrix = TRUE)
+#' print(fit_contrast$MCTP, show.matrix = TRUE)
 #'
 #' ## Missing response values
 #' dat_miss <- dental
@@ -213,14 +266,15 @@
 #'
 #' @export 
 
-nparLD <- function(formula, data, alpha = 0.05, subject, replicate = NULL,
-                   CI.method = c("logit", "normal"),
+nparLD <- function(formula, data, subject, replicate = NULL,
+                    cell.weights = c("subjects", "observations"),
                    effect = c("unweighted", "weighted"),
-                   cell.weights = c("subjects", "observations"),
                    hypothesis = c("H0F", "H0p"),
                    contrast = NULL,
                    sci.method = c("fisher", "multi.t"),
                    Factor.Information = FALSE,
+                   CI.method = c("logit", "normal"),
+                   alpha = 0.05,
                    covariance = FALSE,
                    perm.test = FALSE,
                    B = 1000) {
@@ -410,26 +464,24 @@ if (hypothesis == "H0p") {
 
   Sigma <- Sigma.reg
 
-  text.hypotheses <- "Tested in marginal Mann-Whitney effects (marginal relative effects)"
+  text.hypotheses <- "Tested in marginal Mann-Whitney effects (relative marginal effects)"
 }
 
-  if (hypothesis == "H0F") {
+if (hypothesis == "H0F") {
 
-    if (!is.null(replicate)) {
-      message("For H0F, the ranks (or pseudo-ranks) of the replicate observations are averaged within subject-cells.")
-    }
+  Sigma <- .nparld_estimate_sigma(
+    dat = dat,
+    WP.names = design$WP.names,
+    SP.names = design$SP.names,
+    N = design$N,
+    Ntotal = Ntotal,
+    replicate = replicate,
+    cell.weights = cell.weights
+  )
 
-    Sigma <- .nparld_estimate_sigma(
-      dat = dat,
-      WP.names = design$WP.names,
-      SP.names = design$SP.names,
-      N = design$N,
-      Ntotal = Ntotal
-    )
-
-    effects$std.error <- sqrt(diag(Sigma))
-    text.hypotheses <- "Tested in distribution functions"
-  }
+  effects$std.error <- sqrt(diag(Sigma))
+  text.hypotheses <- "Tested in distribution functions"
+}
 
   #*******************************************************************************
   # Compute the test statistics

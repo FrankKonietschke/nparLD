@@ -333,8 +333,6 @@ fit_brdu_subjects <- nparLD(
 )
 
 
-
-
 fit_brdu_observations <- nparLD(
   resp ~ dose,
   data = brdu,
@@ -368,7 +366,7 @@ intervals for selected model terms. This is useful when the scientific question
 concerns a main effect or interaction rather than all factorial cells.
 
 
-```{r}
+```{r plot-term effects, fig.width=7, fig.height=4}
 fit_shoulder_info <- nparLD(
   resp ~ group1 * group2 * time,
   data = shoulder,
@@ -382,13 +380,13 @@ plot(fit_shoulder_info, term = "group1:time")
 
 Several terms can be displayed in one faceted plot.
 
-```{r}
+```{r plot-cell-effectsseveral, fig.width=7, fig.height=4}
 plot(fit_shoulder_info, term = c("time", "group1:time"))
 ```
 The horizontal reference line at 0.5 marks the value corresponding to no tendency
 relative to the reference distribution. Values above 0.5 indicate a tendency
 toward larger responses, whereas values below 0.5 indicate a tendency toward
-smaller responses.
+smaller responses. The plots are `ggplot2` plots and hence can be adapted (e.g., in crease font) in the usual way. 
 
 ## Test statistics and multiple contrasts
 

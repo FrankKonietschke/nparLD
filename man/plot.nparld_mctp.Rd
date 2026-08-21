@@ -2,12 +2,16 @@
 % Please edit documentation in R/Utility.R
 \name{plot.nparld_mctp}
 \alias{plot.nparld_mctp}
-\title{Plot multiple contrast test results}
+\title{Plot nparLD multiple contrast results}
 \usage{
 \method{plot}{nparld_mctp}(
   x,
   xlab = "Contrast effect",
+  ylab = "",
   main = NULL,
+  ref.line = 0,
+  ref.lty = 2,
+  ref.col = "gray50",
   pch = 19,
   lwd = 2,
   col = NULL,
@@ -15,20 +19,54 @@
 )
 }
 \arguments{
-\item{x}{An object of class \code{nparld_mctp}.}
+\item{x}{An object of class \code{"nparld_mctp"}.}
 
-\item{xlab}{Label for the x-axis.}
+\item{xlab}{Label for the x-axis. The default is \code{"Contrast effect"}.}
 
-\item{main}{Plot title.}
+\item{ylab}{Label for the y-axis. The default is an empty label.}
+
+\item{main}{Optional plot title.}
+
+\item{ref.line}{Optional vertical reference line. The default is \code{0}.}
+
+\item{ref.lty}{Line type for the reference line.}
+
+\item{ref.col}{Colour of the reference line.}
 
 \item{pch}{Plotting character.}
 
 \item{lwd}{Line width.}
 
-\item{col}{Optional colors.}
+\item{col}{Optional colors for confidence intervals and point estimates. If
+\code{NULL}, intervals excluding zero are shown in red and intervals
+including zero are shown in black.}
 
 \item{...}{Further graphical arguments.}
 }
 \description{
-Plot multiple contrast test results
+Displays simultaneous confidence intervals for local contrasts from a
+multiple contrast test procedure. The plot shows the contrast estimates
+together with their simultaneous confidence limits and a vertical reference
+line at zero. Intervals excluding zero are highlighted by default.
+}
+\details{
+Displays simultaneous confidence intervals for the local contrast results
+returned by the multiple contrast test procedure. The vertical reference line
+at zero indicates the null value for contrast effects.
+}
+\examples{
+\donttest{
+data(shoulder)
+
+fit <- nparLD(
+  resp ~ group1 * group2 * time,
+  data = shoulder,
+  subject = "subject",
+  hypothesis = "H0p",
+  contrast = list("time", "Dunnett")
+)
+
+plot(fit$MCTP)
+}
+
 }

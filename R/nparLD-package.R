@@ -3,17 +3,17 @@
 #'
 #' The \pkg{nparLD} package provides nonparametric methods for the analysis of
 #' longitudinal and repeated-measures data in factorial experiments. It is
-#' designed for settings in which response distributions may be non-normal,
+#' especially useful for settings in which response distributions may be non-normal,
 #' ordinal, skewed, heteroscedastic, or affected by ties. The procedures do not 
 #' require distributional assumptions, and are applicable to a variety of data types 
-#'(continuous, discrete, purely ordinal, and dichotomous). Such methods are also robust 
-#'with respect to outliers and for small sample sizes.
+#'(continuous, discrete, purely ordinal, and dichotomous). The methods are also robust 
+#' with respect to outliers and for small sample sizes.
 #'
 #' The main function is [nparLD()], which implements inference for hypotheses in
 #' marginal distribution functions and in unweighted relative marginal effects.
-#' The package supports crossed factorial designs with whole-plot and subplot
+#' The package supports crossed factorial designs with whole-plot and sub-plot
 #' factors, missing observations, dependent replicate measurements, rank- and
-#' pseudo-rank-based estimation, Wald-type and ANOVA-type statistics, multiple
+#' pseudo-rank-based estimation, confidence intervals, Wald-type and ANOVA-type statistics, multiple
 #' contrast procedures, and simultaneous confidence intervals.
 #'
 #' @section Main function:

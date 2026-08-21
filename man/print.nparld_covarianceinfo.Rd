@@ -7,12 +7,16 @@
 \method{print}{nparld_covarianceinfo}(x, digits = 4, ...)
 }
 \arguments{
-\item{x}{An object of class \code{nparld_covarianceinfo}.}
+\item{x}{An object of class \code{"nparld_covarianceinfo"}.}
 
-\item{digits}{Number of digits.}
+\item{digits}{Number of digits used for printing numerical results.}
 
 \item{...}{Further arguments.}
 }
 \description{
-Print nparLD covariance matrix
+Displays the estimated covariance matrix of the relative effect estimator.
+}
+\details{
+The printed matrix is the estimated covariance matrix used for the selected
+hypothesis. It is returned when \code{covariance = TRUE}.
 }

@@ -4,13 +4,26 @@
 \alias{print.nparld_fit}
 \title{Print nparLD fit}
 \usage{
-\method{print}{nparld_fit}(x, ...)
+\method{print}{nparld_fit}(x, digits = 4, ...)
 }
 \arguments{
-\item{x}{An object of class \code{nparld_fit}.}
+\item{x}{An object of class \code{"nparld_fit"}.}
+
+\item{digits}{Number of digits used for printed numerical results.}
 
 \item{...}{Further arguments.}
 }
 \description{
-Print nparLD fit
+Prints the main results of a fitted \code{nparLD()} model, including the
+detected design, hypothesis type, ranking method, estimated relative effects,
+and global WTS and ATS results. Optional components such as factor-specific
+information, multiple contrast results, covariance matrices, and permutation
+tests are displayed when available.
+}
+\details{
+The print method displays the detected design, sample size information,
+hypothesis type, ranking method, estimated relative effects, and global WTS
+and ATS results. Optional components are printed when available, including
+factor-specific information, multiple contrast results, covariance matrices,
+and permutation test results.
 }

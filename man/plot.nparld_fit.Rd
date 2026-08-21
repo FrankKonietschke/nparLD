@@ -23,17 +23,18 @@
 \item{term}{Optional character vector specifying one or more model terms for
 which factor-specific relative effects and confidence intervals should be
 plotted. The requested terms require \code{Factor.Information = TRUE} in the
-original call to \code{nparLD()}.}
+original call to \code{nparLD()}. If \code{term = NULL}, the cell-level
+relative effects in \code{x$effects} are plotted.}
 
 \item{xlab}{Optional x-axis label.}
 
-\item{ylab}{Optional y-axis label.}
+\item{ylab}{Optional y-axis label. The default is \code{"Relative effect"}.}
 
 \item{main}{Optional plot title.}
 
 \item{legend.title}{Optional legend title.}
 
-\item{ref.line}{Optional horizontal reference line.}
+\item{ref.line}{Optional horizontal reference line. The default is \code{0.5}.}
 
 \item{ref.lty}{Line type for the reference line.}
 
@@ -42,9 +43,25 @@ original call to \code{nparLD()}.}
 \item{...}{Further arguments.}
 }
 \description{
-Plot nparLD results
+Displays graphical summaries of estimated relative effects from an
+\code{nparLD()} fit. By default, the method plots the cell-level relative
+effects stored in \code{x$effects}. If \code{term} is supplied, it plots
+factor-specific relative effects and confidence intervals for selected main
+effects or interactions. Term-specific plots require that the model was fitted
+with \code{Factor.Information = TRUE}.
+}
+\details{
+The default plot displays the estimated cell-level relative effects. If
+\code{term} is supplied, the plot displays factor-specific relative effects
+and confidence intervals for the selected main effects or interactions. This
+requires that the model was fitted with \code{Factor.Information = TRUE}.
+The horizontal reference line at 0.5 indicates no tendency relative to the
+reference distribution. Values above 0.5 indicate a tendency toward larger
+responses, whereas values below 0.5 indicate a tendency toward smaller
+responses.
 }
 \examples{
+\donttest{
 data(shoulder)
 
 fit <- nparLD(
@@ -55,8 +72,12 @@ fit <- nparLD(
   Factor.Information = TRUE
 )
 
+## Cell-level relative effects
 plot(fit)
+
+## Factor-specific relative effects and confidence intervals
 plot(fit, term = "time")
 plot(fit, term = "group1:time")
+}
 
 }

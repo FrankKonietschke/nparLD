@@ -7,13 +7,23 @@
 \method{summary}{nparld_fit}(object, ...)
 }
 \arguments{
-\item{object}{An object of class \code{nparld_fit}.}
+\item{object}{An object of class \code{"nparld_fit"}.}
 
 \item{...}{Further arguments passed to or from other methods.}
 }
 \value{
-An object of class \code{summary.nparld_fit}.
+An object of class \code{"summary.nparld_fit"} containing selected
+components of the fitted model.
 }
 \description{
-Summarize an nparLD fit
+Extracts the main components of a fitted \code{nparLD()} object into a
+structured summary object. The summary is useful for inspecting, printing, or
+programmatically accessing the main results without working directly with all
+internal components of the fitted object.
+}
+\details{
+The summary method returns a structured list containing the main components
+of the fitted object. In contrast to \code{print()}, which is mainly intended
+for console display, \code{summary()} is useful for storing or extracting the
+main results programmatically.
 }
