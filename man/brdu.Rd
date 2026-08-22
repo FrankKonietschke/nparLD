@@ -28,6 +28,7 @@ In the package data set, the variables were renamed to \code{culture},
 \code{replicate}, \code{dose}, and \code{resp} for consistency with the examples.
 }
 \examples{
+\dontrun{
 data(brdu)
 
 fit <- nparLD(
@@ -40,6 +41,7 @@ fit <- nparLD(
 )
 
 fit
+}
 
 }
 \keyword{datasets}

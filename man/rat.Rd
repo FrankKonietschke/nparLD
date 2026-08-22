@@ -21,6 +21,8 @@ Body-weight measurements from rats observed over a five-week period. The data
 illustrate longitudinal growth curves in several treatment groups.
 }
 \examples{
+
+\dontrun{
 data(rat)
 
 fit <- nparLD(resp ~ group * time,
@@ -28,7 +30,9 @@ fit <- nparLD(resp ~ group * time,
               subject = "subject",
               hypothesis = "H0F")
 fit
+}
 
+\dontrun{
 fit <- nparLD(resp ~ group * time,
               data = rat,
               subject = "subject",
@@ -37,6 +41,7 @@ fit <- nparLD(resp ~ group * time,
 fit
 plot(fit)
 plot(fit$MCTP)
+}
 
 }
 \keyword{datasets}

@@ -22,6 +22,8 @@ Ordinal health-status measurements from patients with a respiratory disorder.
 The data include study center, treatment group, and repeated visits.
 }
 \examples{
+
+\dontrun{
 data(respiration)
 
 fit <- nparLD(resp ~ center * treatment * time,
@@ -29,6 +31,7 @@ fit <- nparLD(resp ~ center * treatment * time,
               subject = "patient",
               hypothesis = "H0F")
 fit
+}
 
 \dontrun{
 fit <- nparLD(resp ~ center * treatment * time,

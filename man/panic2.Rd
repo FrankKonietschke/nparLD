@@ -24,12 +24,15 @@ one whole-plot factor and one repeated-measures factor.
 \examples{
 data(panic2)
 
+\dontrun{
 fit <- nparLD(resp ~ group * time,
               data = panic2,
               subject = "subject",
               hypothesis = "H0F", effect="unweighted")
 fit
+}
 
+\dontrun{
 fit <- nparLD(resp ~ group * time,
               data = panic2,
               subject = "subject",
@@ -40,6 +43,7 @@ fit <- nparLD(resp ~ group * time,
 fit
 plot(fit)
 plot(fit$MCTP)
+}
 
 }
 \keyword{datasets}

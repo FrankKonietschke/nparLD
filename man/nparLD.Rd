@@ -208,6 +208,7 @@ fit_dental
 ## Crossed factorial longitudinal design: shoulder data
 data(shoulder)
 
+\dontrun{
 fit_shoulder <- nparLD(
   resp ~ group1 * group2 * time,
   data = shoulder,
@@ -216,8 +217,11 @@ fit_shoulder <- nparLD(
 )
 
 fit_shoulder
+}
 
 ## Multiple contrast procedure for an interaction
+
+\dontrun{
 fit_contrast <- nparLD(
   resp ~ group1 * group2 * time,
   data = shoulder,
@@ -228,8 +232,10 @@ fit_contrast <- nparLD(
 
 fit_contrast$MCTP
 print(fit_contrast$MCTP, show.matrix = TRUE)
+}
 
 ## Missing response values
+\dontrun{
 dat_miss <- dental
 dat_miss$resp[c(2, 7, 12)] <- NA
 
@@ -241,10 +247,12 @@ fit_miss <- nparLD(
 )
 
 fit_miss
+}
 
 ## Dependent replicate measurements: BrdU data
 data(brdu)
 
+\dontrun{
 fit_brdu <- nparLD(
   resp ~ dose,
   data = brdu,
@@ -255,6 +263,7 @@ fit_brdu <- nparLD(
 )
 
 fit_brdu
+}
 
 \dontrun{
 ## Graphical displays

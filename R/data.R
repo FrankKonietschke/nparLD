@@ -179,12 +179,15 @@
 #' @examples
 #' data(panic2)
 #'
+#' \dontrun{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = panic2,
 #'               subject = "subject",
 #'               hypothesis = "H0F", effect="unweighted")
 #' fit
+#' }
 #'
+#' \dontrun{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = panic2,
 #'               subject = "subject",
@@ -195,6 +198,7 @@
 #' fit
 #' plot(fit)
 #' plot(fit$MCTP)
+#' }
 #'
 #' @docType data
 #' @keywords datasets
@@ -218,12 +222,15 @@
 #' @examples
 #' data(plasma)
 #'
+#' \dontrun{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = plasma,
 #'               subject = "subject",
 #'               hypothesis = "H0F", effect="weighted")
 #' fit
+#' }
 #'
+#' \dontrun{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = plasma,
 #'               subject = "subject",
@@ -232,6 +239,7 @@
 #' fit
 #' plot(fit)
 #' plot(fit$MCTP)
+#' }
 #'
 #' @docType data
 #' @keywords datasets
@@ -252,6 +260,8 @@
 #' }
 #'
 #' @examples
+#' 
+#' \dontrun{
 #' data(rat)
 #'
 #' fit <- nparLD(resp ~ group * time,
@@ -259,7 +269,9 @@
 #'               subject = "subject",
 #'               hypothesis = "H0F")
 #' fit
+#'}
 #'
+#' \dontrun{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = rat,
 #'               subject = "subject",
@@ -268,6 +280,7 @@
 #' fit
 #' plot(fit)
 #' plot(fit$MCTP)
+#' }
 #'
 #' @docType data
 #' @keywords datasets
@@ -289,6 +302,8 @@
 #' }
 #'
 #' @examples
+#'
+#' \dontrun{
 #' data(respiration)
 #'
 #' fit <- nparLD(resp ~ center * treatment * time,
@@ -296,6 +311,7 @@
 #'               subject = "patient",
 #'               hypothesis = "H0F")
 #' fit
+#' }
 #'
 #' \dontrun{
 #' fit <- nparLD(resp ~ center * treatment * time,
@@ -416,6 +432,7 @@
 #' `replicate`, `dose`, and `resp` for consistency with the examples.
 #'
 #' @examples
+#' \dontrun{
 #' data(brdu)
 #'
 #' fit <- nparLD(
@@ -428,6 +445,7 @@
 #' )
 #'
 #' fit
+#' }
 #'
 #' @name brdu
 #' @docType data
