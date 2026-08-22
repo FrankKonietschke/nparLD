@@ -1,0 +1,23 @@
+amylase                 Alpha-amylase Saliva Study
+brdu                    BrdU incorporation in fibroblasts
+dental                  Dental Growth Study
+edema                   Postoperative Edema Study
+nparLD                  Nonparametric Analysis of Longitudinal Data
+panic                   Panic Disorder Study I
+panic2                  Panic Disorder Study II
+plasma                  Plasma-renin Activity Study
+plot.nparld_fit         Plot nparLD results
+plot.nparld_mctp        Plot nparLD multiple contrast results
+print.nparld_covarianceinfo
+                        Print nparLD covariance matrix
+print.nparld_factorinfo
+                        Print nparLD factor information
+print.nparld_fit        Print nparLD fit
+print.nparld_mctp       Print nparLD multiple contrast results
+print.summary.nparld_fit
+                        Print summary of an nparLD fit
+rat                     Rat Growth Study
+respiration             Respiratory Disorder Study
+shoulder                Shoulder Tip Pain Study
+summary.nparld_fit      Summarize an nparLD fit
+tree                    Vitality of Treetops

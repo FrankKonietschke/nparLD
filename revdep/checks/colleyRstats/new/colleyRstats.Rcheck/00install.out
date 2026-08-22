@@ -1,0 +1,20 @@
+* installing *source* package 'colleyRstats' ...
+** this is package 'colleyRstats' version '0.1.5'
+** Paket 'colleyRstats' erfolgreich entpackt und MD5 Summen überprüft
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+Warnmeldung:
+Paket 'ggplot2' wurde unter R Version 4.5.3 erstellt 
+** help
+*** installing help indices
+*** copying figures
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+Warnung: Paket 'ggplot2' wurde unter R Version 4.5.3 erstellt
+** testing if installed package can be loaded from final location
+Warnung: Paket 'ggplot2' wurde unter R Version 4.5.3 erstellt
+** testing if installed package keeps a record of temporary installation path
+* DONE (colleyRstats)

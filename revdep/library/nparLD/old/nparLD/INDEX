@@ -1,0 +1,22 @@
+amylase                 Alpha-amylase study
+dental                  Dental study
+edema                   Postoperative edema
+f1.ld.f1                Nonparametric Tests for the F1-LD-F1 Design
+f1.ld.f2                Nonparametric Tests for the F1-LD-F2 Design
+f2.ld.f1                Nonparametric Tests for the F2-LD-F1 Design
+ld.ci                   Confidence Intervals for the Relative Treatment
+                        Effects
+ld.f1                   Nonparametric Tests for the LD-F1 Design
+ld.f2                   Nonparametric Tests for the LD-F2 Design
+nparLD                  Nonparametric Tests for Repeated Measures Data
+                        in Factorial Designs
+panic                   Panic disorder study I
+panic2                  Panic disorder study II
+plasma                  Plasma-renin study
+plot.nparLD             Plot for nparLD
+print.nparLD            Simple Summary for nparLD
+rat                     Rat growth study
+respiration             Respiratory disorder study
+shoulder                Shoulder tip pain study
+summary.nparLD          Object Summary for nparLD
+tree                    Vitality of treetops

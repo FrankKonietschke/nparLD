@@ -1,0 +1,220 @@
+
+R version 4.5.1 (2025-06-13 ucrt) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # This file is part of the standard setup for testthat.
+> # It is recommended that you do not modify it.
+> #
+> # Where should you do additional test configuration?
+> # Learn more about the roles of various files in:
+> # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
+> # * https://testthat.r-lib.org/articles/special-files.html
+> 
+> library(testthat)
+Warning message:
+package 'testthat' was built under R version 4.5.3 
+> library(colleyRstats)
+Loading required package: ggplot2
+Warning message:
+package 'ggplot2' was built under R version 4.5.3 
+> 
+> test_check("colleyRstats")
+boundary (singular) fit: see help('isSingular')
+boundary (singular) fit: see help('isSingular')
+Wrote 'C:\Users\konietsf\AppData\Local\Temp\RtmpCi2bzr/sty-test/colleyRstats.sty'. Add \usepackage{colleyRstats} to your document.
+  Kruskal-Wallis rank sum test
+
+data: x and g
+Kruskal-Wallis chi-squared = 96.9374, df = 2, p-value = 0
+
+
+                      Dunn's Pairwise Comparison of x by g                      
+                                     (Holm)                                     
+
+Col Mean-│
+Row Mean │     setosa   versicol
+─────────┼──────────────────────
+versicol │  -6.106326
+         │     0.0000*
+         │
+virginic │  -9.741784  -3.635458
+         │     0.0000*    0.0003*
+
+FWER = 0.05
+Reject Ho if adjusted p ≤ FWER with stopping rule, where (unadjusted) p = Pr(|Z| ≥ |z|)
+<colleyRstats analysis recommendation>
+  Outcome        : rating (ordinal)
+  Predictors     : cond
+  Design         : within (cluster: id)
+  Recommendation : Cumulative Link Mixed Model (CLMM)
+  Family         : cumulative link (logit)
+  Fit with       : ordinal::clmm(rating ~ cond + (1 | id), data = your_data)  # outcome must be an ordered factor
+  Report with    : reportCLMM()
+  Alternative(s) : nparLD (rank-based repeated measures) if proportional odds is untenable
+  Rationale      : the outcome is ordinal and the observations are clustered, so an ordinal (proportional-odds) model with a random effect is appropriate
+The effect of \textit{condB} on workload was not significant ($b = 0.12$, 95\% CI $[-0.62, 0.85]$, $t(55) = 0.32$, \p{0.751}).
+The effect of \textit{condC} on workload was not significant ($b = 0.12$, 95\% CI $[-0.61, 0.86]$, $t(55) = 0.34$, \p{0.738}).
+boundary (singular) fit: see help('isSingular')
+  Kruskal-Wallis rank sum test
+
+data: x and g
+Kruskal-Wallis chi-squared = 96.9374, df = 2, p-value = 0
+
+
+                      Dunn's Pairwise Comparison of x by g                      
+                                     (Holm)                                     
+
+Col Mean-│
+Row Mean │     setosa   versicol
+─────────┼──────────────────────
+versicol │  -6.106326
+         │     0.0000*
+         │
+virginic │  -9.741784  -3.635458
+         │     0.0000*    0.0003*
+
+FWER = 0.05
+Reject Ho if adjusted p ≤ FWER with stopping rule, where (unadjusted) p = Pr(|Z| ≥ |z|)
+Scale for x is already present.
+Adding another scale for x, which will replace the existing scale.
+Scale for x is already present.
+Adding another scale for x, which will replace the existing scale.
+Scale for x is already present.
+Adding another scale for x, which will replace the existing scale.
+Scale for x is already present.
+Adding another scale for x, which will replace the existing scale.
+The NPAV found a significant main effect of \Video on mental workload (\F{1}{10}{6.12}, \p{0.033}), $\eta_{p}^{2}$=0.38 [0.02, 1.00]. 
+The NPAV found a significant interaction effect of \gesture $\times$ \eHMI on mental workload (\F{1}{10}{5.01}, \p{0.045}), $\eta_{p}^{2}$=0.33 [0.00, 1.00]. 
+The ART found a significant interaction effect of \gesture $\times$ \eHMI on mental demand (\F{1}{10}{5.01}, \p{0.045}, $\eta_{p}^{2}$ = 0.33, 95\% CI: [0.00, 1.00]). 
+%B: \m{-0.69}, \sd{1.55}
+
+A Games-Howell post-hoc test found that 4 was significantly higher (\m{26.66}, \sd{4.51}) in terms of \mpg compared to 8 (\m{15.10}, \sd{2.56}; \padjminor{0.001}). 
+A Games-Howell post-hoc test found that 6 was significantly higher (\m{19.74}, \sd{1.45}) in terms of \mpg compared to 8 (\m{15.10}, \sd{2.56}; \padjminor{0.001}). 
+A Games-Howell post-hoc test found that 4 was significantly higher (\m{26.66}, \sd{4.51}) in terms of \mpg compared to 8 (\m{15.10}, \sd{2.56}; \padjminor{0.001}). 
+A Games-Howell post-hoc test found that 6 was significantly higher (\m{19.53}, \sd{1.47}) in terms of \mpg compared to 8 (\m{15.10}, \sd{2.56}; \padjminor{0.001}). 
+A Games-Howell post-hoc test found that FourCyl was significantly higher (\m{26.66}, \sd{4.51}) in terms of \mpg compared to 8 (\m{15.10}, \sd{2.56}; \padjminor{0.001}). 
+A Games-Howell post-hoc test found that 6 was significantly higher (\m{19.74}, \sd{1.45}) in terms of \mpg compared to 8 (\m{15.10}, \sd{2.56}; \padjminor{0.001}). 
+  Kruskal-Wallis rank sum test
+
+data: x and g
+Kruskal-Wallis chi-squared = 96.9374, df = 2, p-value = 0
+
+
+                      Dunn's Pairwise Comparison of x by g                      
+                                     (Holm)                                     
+
+Col Mean-│
+Row Mean │     setosa   versicol
+─────────┼──────────────────────
+versicol │  -6.106326
+         │     0.0000*
+         │
+virginic │  -9.741784  -3.635458
+         │     0.0000*    0.0003*
+
+FWER = 0.05
+Reject Ho if adjusted p ≤ FWER with stopping rule, where (unadjusted) p = Pr(|Z| ≥ |z|)
+A post-hoc test found that Sepal.Length for the \Species virginica was significantly higher (\m{6.59}, \sd{0.64}) than for setosa (\m{5.01}, \sd{0.35}; \padjminor{0.001}, \rankbiserial{0.97}) and versicolor (\m{5.94}, \sd{0.52}; \padjminor{0.001}, \rankbiserial{0.58}). 
+% latex table generated in R 4.5.1 by xtable 1.8-8 package
+% Sat Aug 22 20:34:22 2026
+\begin{table}[ht]
+\centering
+\caption{Post-hoc comparisons for independent variable \Species and dependent variable Sepal.Length. Positive Z-values mean that the first-named level is sig. higher than the second-named. For negative Z-values, the opposite is true. Effect size reported as rank-biserial correlation (r).} 
+\label{tab:posthoc-Species-Sepal.Length}
+\begingroup\small
+\begin{tabular}{lrll}
+  \hline
+Comparison & Z & p-adjusted & r \\ 
+  \hline
+setosa - versicolor & -6.1063 & $<$0.001 & 0.87 \\ 
+  setosa - virginica & -9.7418 & $<$0.001 & 0.97 \\ 
+  versicolor - virginica & -3.6355 & $<$0.001 & 0.58 \\ 
+   \hline
+\end{tabular}
+\endgroup
+\end{table}
+  Kruskal-Wallis rank sum test
+
+data: x and g
+Kruskal-Wallis chi-squared = 96.9374, df = 2, p-value = 0
+
+
+                      Dunn's Pairwise Comparison of x by g                      
+                                     (Holm)                                     
+
+Col Mean-│
+Row Mean │     setosa   versicol
+─────────┼──────────────────────
+versicol │  -6.106326
+         │     0.0000*
+         │
+virginic │  -9.741784  -3.635458
+         │     0.0000*    0.0003*
+
+FWER = 0.05
+Reject Ho if adjusted p ≤ FWER with stopping rule, where (unadjusted) p = Pr(|Z| ≥ |z|)
+% latex table generated in R 4.5.1 by xtable 1.8-8 package
+% Sat Aug 22 20:34:23 2026
+\begin{table}[ht]
+\centering
+\caption{Post-hoc comparisons for independent variable \Species and dependent variable Sepal.Length. Positive Z-values mean that the first-named level is sig. higher than the second-named. For negative Z-values, the opposite is true. Effect size reported as rank-biserial correlation (r).} 
+\label{tab:posthoc-Species-Sepal.Length}
+\begingroup\small
+\begin{tabular}{lrll}
+  \hline
+Comparison & Z & p-adjusted & r \\ 
+  \hline
+setosa - versicolor & -6.1063 & $<$0.001 & 0.87 \\ 
+  setosa - virginica & -9.7418 & $<$0.001 & 0.97 \\ 
+  versicolor - virginica & -3.6355 & $<$0.001 & 0.58 \\ 
+   \hline
+\end{tabular}
+\endgroup
+\end{table}
+NOTE: Results may be misleading due to involvement in interactions
+A post-hoc test found that score for the \mode Hand was significantly higher (\m{6.14}, \sd{0.97}) than for Both (\m{2.11}, \sd{0.96}; \padjminor{0.001}, \rankbiserial{1.00}) and Eye (\m{3.95}, \sd{0.83}; \padjminor{0.001}, \rankbiserial{1.00}). 
+% latex table generated in R 4.5.1 by xtable 1.8-8 package
+% Sat Aug 22 20:34:23 2026
+\begin{table}[ht]
+\centering
+\caption{Post-hoc ART contrasts for independent variable \mode and dependent variable \score. Positive t-values mean that the first-named level is sig. higher than the second-named (on the aligned-rank scale). For negative t-values, the opposite is true. Effect size reported as rank-biserial correlation (r).} 
+\label{tab:artcon-mode-score}
+\begingroup\small
+\begin{tabular}{lrrll}
+  \hline
+Comparison & t & df & p-adjusted & r \\ 
+  \hline
+Both - Eye & -6.64 & 36 & $<$0.001 & 0.97 \\ 
+  Both - Hand & -13.95 & 36 & $<$0.001 & 1.00 \\ 
+  Eye - Hand & -7.31 & 36 & $<$0.001 & 1.00 \\ 
+   \hline
+\end{tabular}
+\endgroup
+\end{table}
+NOTE: Results may be misleading due to involvement in interactions
+NOTE: Results may be misleading due to involvement in interactions
+A post-hoc test found that score for the \mode Hand was significantly higher (\m{6.14}, \sd{0.97}) than for Both (\m{2.11}, \sd{0.96}; \padjminor{0.001}, \rankbiserial{1.00}) and Eye (\m{3.95}, \sd{0.83}; \padjminor{0.001}, \rankbiserial{0.93}). 
+NOTE: Results may be misleading due to involvement in interactions
+[ FAIL 0 | WARN 3 | SKIP 2 | PASS 391 ]
+
+══ Skipped tests (2) ═══════════════════════════════════════════════════════════
+• On CRAN (2): 'test-setup.R:88:3', 'test-setup.R:115:3'
+
+[ FAIL 0 | WARN 3 | SKIP 2 | PASS 391 ]
+> 
+> proc.time()
+   user  system elapsed 
+  23.09    3.43   26.51 
