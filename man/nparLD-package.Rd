@@ -66,5 +66,14 @@ Authors:
   \item Frank Konietschke \email{frank.konietschke@charite.de}
 }
 
+Other contributors:
+\itemize{
+  \item Kimihiro Noguchi (Original package author) [contributor]
+  \item Mahbub Latif (Original package author) [contributor]
+  \item Karthinathan Thangavelu (Original package author) [contributor]
+  \item Yulia R. Gel (Original package author) [contributor]
+  \item Edgar Brunner [contributor]
+}
+
 }
 \keyword{internal}
