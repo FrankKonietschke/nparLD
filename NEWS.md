@@ -1,8 +1,9 @@
 # nparLD 2.3.1
 
-* Fixed the ordering of output rows for numeric factor levels. Output tables now
-  preserve the canonical factor-level order instead of applying lexicographic
-  ordering to character representations of factor levels.
+* Fixed the ordering of output rows and cell-effect plots for numeric factor
+  levels. Output tables and plots now preserve the canonical factor-level order
+  instead of applying lexicographic ordering to character representations of
+  factor levels.
 
 # nparLD 2.3.0
 
