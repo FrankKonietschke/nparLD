@@ -459,9 +459,9 @@ plot.nparld_fit <- function(x,
                                       ref.lty = "dashed",
                                       ref.col = "grey40",
                                       ...) {
-if (!requireNamespace("ggplot2", quietly = TRUE)) {
-  stop("Package 'ggplot2' is required for plotting.", call. = FALSE)
-}
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package 'ggplot2' is required for plotting.", call. = FALSE)
+  }
 
   eff <- x$effects
   has_ci <- all(c("lower", "upper") %in% names(eff))
@@ -474,6 +474,16 @@ if (!requireNamespace("ggplot2", quietly = TRUE)) {
 
   factor_cols <- setdiff(names(eff), non_factor_cols)
   nfac <- length(factor_cols)
+
+  ## Preserve the order already stored in x$effects.
+  ## This is important for numeric-looking factor levels such as 8, 10, 12, 14,
+  ## which would otherwise be ordered lexicographically by ggplot2.
+  for (v in factor_cols) {
+    eff[[v]] <- factor(
+      as.character(eff[[v]]),
+      levels = unique(as.character(eff[[v]]))
+    )
+  }
 
   pd <- ggplot2::position_dodge(width = 0.3)
 
@@ -539,8 +549,6 @@ if (!requireNamespace("ggplot2", quietly = TRUE)) {
         colour = ref.col
       )
   }
-
-
 
   p +
     ggplot2::labs(

@@ -29,10 +29,6 @@ No reverse dependency failures were found.
 
 ## Comments
 
-This is a small patch release.
-
-It fixes the ordering of output rows for numeric factor levels. Output tables now
-preserve the canonical factor-level order instead of applying lexicographic
-ordering to character representations of factor levels.
-
-No methodological changes were made.
+This is a small patch release submitted shortly after version 2.3.0 because it
+fixes an output-ordering bug for numeric factor levels in output tables and
+cell-effect plots. No methodological changes were made.
