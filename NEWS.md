@@ -1,3 +1,9 @@
+# nparLD 2.3.1
+
+* Fixed the ordering of output rows for numeric factor levels. Output tables now
+  preserve the canonical factor-level order instead of applying lexicographic
+  ordering to character representations of factor levels.
+
 # nparLD 2.3.0
 
 ## Major redesign
@@ -16,6 +22,7 @@
 
 ## Interface changes
 
-* Factor ordering is now controlled through ordinary R factor levels before calling `nparLD()`.
+* Factor ordering is intended to follow ordinary R factor levels before calling `nparLD()`.
 * Earlier design-specific ordering arguments are no longer part of the main interface.
 * Classical designs such as `LD-F1`, `F1-LD-F1`, `LD-F2`, `F1-LD-F2`, and `F2-LD-F1` are now specified through the formula interface.
+

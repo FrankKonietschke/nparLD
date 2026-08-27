@@ -397,9 +397,7 @@ HC <- function(fl, art = c("Hyp", "CI"), perm_names, names) {
 
   effects$RTE <- 1 / Ntotal * (effects$ScoreMean - 1 / 2)
 
-  if (length(factor_cols) > 0) {
-    effects <- effects[do.call(order, effects[factor_cols]), , drop = FALSE]
-  }
+rownames(effects) <- NULL
 
   list(
     dat = dat,

@@ -1,7 +1,7 @@
 Package: nparLD
 Type: Package
 Title: Nonparametric Analysis of Longitudinal Data in Factorial Experiments
-Version: 2.3.0
+Version: 2.3.1
 Authors@R: c(
     person(given = "Frank",
            family = "Konietschke",

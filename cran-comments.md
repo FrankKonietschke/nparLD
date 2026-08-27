@@ -1,6 +1,15 @@
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes
+0 errors | 0 warnings | 1 note
+
+## Notes
+
+* checking CRAN incoming feasibility ... NOTE
+  Days since last update: 5
+
+This is a small patch release submitted shortly after version 2.3.0 because it
+fixes an output-ordering bug for numeric factor levels. No methodological
+changes were made.
 
 ## Additional checks
 
@@ -20,6 +29,10 @@ No reverse dependency failures were found.
 
 ## Comments
 
-This is a major update of nparLD. The package now provides a formula interface for crossed factorial 
-longitudinal and repeated-measures designs that support for incomplete observations, dependent replicate measurements, hypotheses in marginal distribution functions and unweighted relative marginal effects, multiple contrast procedures, simultaneous confidence intervals, covariance output, factor-specific effect summaries, and plotting methods.
-The previous CRAN NOTE about the missing Authors@R field has been addressed. The DESCRIPTION file now contains Authors@R. A modern inst/CITATION file using bibentry() has also been added.
+This is a small patch release.
+
+It fixes the ordering of output rows for numeric factor levels. Output tables now
+preserve the canonical factor-level order instead of applying lexicographic
+ordering to character representations of factor levels.
+
+No methodological changes were made.

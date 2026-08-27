@@ -440,3 +440,34 @@ test_that("H0F replicate subject and observation weights both run", {
   expect_false(is.null(fit_subjects$WTS))
   expect_false(is.null(fit_observations$WTS))
 })
+
+test_that("effects preserve numeric factor-level order", {
+  data("dental", package = "nparLD")
+
+  fit <- nparLD(
+    resp ~ time,
+    data = dental,
+    subject = "subject",
+    hypothesis = "H0p"
+  )
+
+  expect_equal(as.character(fit$effects$time), c("8", "10", "12", "14"))
+  expect_equal(rownames(fit$effects), as.character(seq_len(nrow(fit$effects))))
+})
+
+test_that("effects preserve numeric factor-level order with missing values", {
+  data("dental", package = "nparLD")
+
+  dat <- dental
+  dat$resp[c(2, 7, 12)] <- NA
+
+  fit <- nparLD(
+    resp ~ time,
+    data = dat,
+    subject = "subject",
+    hypothesis = "H0p"
+  )
+
+  expect_equal(as.character(fit$effects$time), c("8", "10", "12", "14"))
+  expect_equal(fit$effects$Nmiss, c(3L, 0L, 0L, 0L))
+})
