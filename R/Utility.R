@@ -4,6 +4,34 @@
 
 utils::globalVariables(c(".data", "RTE", "lower", "upper"))
 
+.nparld_format_pvalues <- function(tab, digits = 4, eps = 1e-4) {
+  tab <- as.data.frame(tab)
+
+  p_cols <- names(tab)[tolower(names(tab)) %in% c(
+    "p-value", "p.value", "pval", "p"
+  )]
+
+  for (v in p_cols) {
+    tab[[v]] <- format.pval(tab[[v]], digits = digits, eps = eps)
+  }
+
+  tab
+}
+
+.nparld_round_numeric <- function(tab, digits = 4) {
+  tab <- as.data.frame(tab)
+  num_cols <- vapply(tab, is.numeric, logical(1))
+  tab[num_cols] <- lapply(tab[num_cols], round, digits = digits)
+  tab
+}
+
+.nparld_print_table <- function(tab, digits = 4, eps = 1e-4, ...) {
+  tab <- .nparld_round_numeric(tab, digits = digits)
+  tab <- .nparld_format_pvalues(tab, digits = digits, eps = eps)
+  print(tab, ...)
+  invisible(tab)
+}
+
 #' Print nparLD fit
 #'
 #' Prints the main results of a fitted \code{nparLD()} model, including the
@@ -63,11 +91,9 @@ print.nparld_fit <- function(x, digits = 4, ...) {
   cat("-------------------------------------------------\n")
   print(x$effects, digits = digits)
 
-  if (!is.null(x$factor.info)) {
-    cat("\nFactor-specific relative effects\n")
-    cat("-------------------------------------------------\n")
-    print(x$factor.info, digits = digits)
-  }
+if (!is.null(x$factor.info)) {
+  print(x$factor.info, digits = digits)
+}
 
   if (!is.null(x$WTS) || !is.null(x$ATS)) {
     cat("\nGlobal test results\n")
@@ -76,12 +102,12 @@ print.nparld_fit <- function(x, digits = 4, ...) {
 
   if (!is.null(x$WTS)) {
     cat("\nWald-type statistic (WTS)\n")
-    print(round(x$WTS, digits))
+    .nparld_print_table(x$WTS, digits = digits)
   }
 
   if (!is.null(x$ATS)) {
     cat("\nANOVA-type statistic (ATS)\n")
-    print(round(x$ATS, digits))
+    .nparld_print_table(x$ATS, digits = digits)
   }
 
   if (!is.null(x$MCTP)) {
@@ -270,13 +296,13 @@ if (!is.null(x$N.info)) {
   if (!is.null(x$WTS)) {
     cat("\nWald-type statistic (WTS)\n")
     cat("-------------------------------------------------\n")
-    print(round(x$WTS, digits))
+   .nparld_print_table(x$WTS, digits = digits)
   }
 
   if (!is.null(x$ATS)) {
     cat("\nANOVA-type statistic (ATS)\n")
     cat("-------------------------------------------------\n")
-    print(round(x$ATS, digits))
+    .nparld_print_table(x$ATS, digits = digits)
   }
 
   if (!is.null(x$MCTP)) {
@@ -334,13 +360,13 @@ print.nparld_mctp <- function(x, digits = 4, show.matrix = FALSE, ...) {
   if (!is.null(x$Global.Result)) {
     cat("\nGlobal result\n")
     cat("-------------------------------------------------\n")
-    print(round(x$Global.Result, digits = digits))
+    .nparld_print_table(x$Global.Result, digits = digits)
   }
 
   if (!is.null(x$Local.Results)) {
     cat("\nLocal contrast results\n")
     cat("-------------------------------------------------\n")
-    print(round(x$Local.Results, digits = digits))
+    .nparld_print_table(x$Local.Results, digits = digits)
   }
 
   if (!is.null(x$Contrast.Matrix)) {
@@ -349,7 +375,7 @@ print.nparld_mctp <- function(x, digits = 4, show.matrix = FALSE, ...) {
       cat("-------------------------------------------------\n")
       print(round(x$Contrast.Matrix, digits = digits))
     } else {
-      cat("\nContrast matrix: available in component `Contrast.Matrix`.\n")
+      cat("\nContrast matrix not shown by default.\n")
       cat("Use `print(x, show.matrix = TRUE)` to display it.\n")
     }
   }
@@ -719,7 +745,19 @@ return(dat)
   stop("Unsupported factor.info structure.", call. = FALSE)
 }
 
-
+#' Print nparLD test table
+#'
+#' @param x An object of class \code{"nparld_test_table"}.
+#' @param digits Number of digits used for printing numerical results.
+#' @param ... Further arguments.
+#'
+#' @export
+print.nparld_test_table <- function(x, digits = 4, ...) {
+  tab <- as.data.frame(x)
+  class(tab) <- setdiff(class(tab), "nparld_test_table")
+  .nparld_print_table(tab, digits = digits, ...)
+  invisible(x)
+}
 
 ##################################################################
 # Plot simultaneous confidence intervals
@@ -762,7 +800,7 @@ return(dat)
 #'   contrast = list("time", "Dunnett")
 #' )
 #'
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #' }
 #'
 #' @export
