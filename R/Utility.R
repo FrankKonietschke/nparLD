@@ -219,25 +219,26 @@ summary.nparld_fit <- function(object, ...) {
     subplots = object$subplots,
     N.info = object$N.info,
     hypothesis = object$hypothesis,
-    effects = object$effects,
-    factor.info = object$factor.info,
+    text.hypotheses = object$text.hypotheses,
+    text.ranks = object$text.ranks,
+    CI.method = object$CI.method,
+    n.effects = if (!is.null(object$effects)) nrow(object$effects) else NA_integer_,
+    effect.names = if (!is.null(object$effects)) names(object$effects) else NULL,
+    has.factor.info = !is.null(object$factor.info),
+    has.MCTP = !is.null(object$MCTP),
+    has.covariance = !is.null(object$covariance),
+    has.permutation = !is.null(object$perm) && isTRUE(object$perm$available),
     WTS = object$WTS,
     ATS = object$ATS
   )
 
   if (!is.null(object$MCTP)) {
-    res$MCTP <- object$MCTP
-  }
-
-  if (!is.null(object$covariance.info)) {
-    res$covariance.info <- object$covariance.info
+    res$MCTP.global <- object$MCTP$Global.Result
   }
 
   if (!is.null(object$perm) && isTRUE(object$perm$available)) {
-    res$Permutation <- object$perm
+    res$Permutation <- object$perm$table
   }
-
-  res <- Filter(Negate(is.null), res)
 
   class(res) <- "summary.nparld_fit"
   res
@@ -258,11 +259,11 @@ summary.nparld_fit <- function(object, ...) {
 #' @export
 print.summary.nparld_fit <- function(x, digits = 4, ...) {
 
-  cat("\nSummary of Nonparametric Longitudinal Analysis\n")
+  cat("\nSummary of nparLD fit\n")
   cat("-------------------------------------------------\n")
 
   if (!is.null(x$Design)) {
-    cat("Design: ", x$Design, "\n", sep = "")
+   cat("Design: ", trimws(x$Design), "\n", sep = "")
   }
 
   if (!is.null(x$wholeplots) && length(x$wholeplots) > 0L) {
@@ -275,28 +276,43 @@ print.summary.nparld_fit <- function(x, digits = 4, ...) {
         paste(x$subplots, collapse = ", "), "\n", sep = "")
   }
 
-  if (!is.null(x$hypothesis)) {
+  if (!is.null(x$N.info)) {
+    cat("Number of subjects: ", x$N.info, "\n", sep = "")
+  }
+
+  if (!is.null(x$text.hypotheses)) {
+    cat("Hypotheses: ", x$text.hypotheses, "\n", sep = "")
+  } else if (!is.null(x$hypothesis)) {
     cat("Hypothesis: ", x$hypothesis, "\n", sep = "")
   }
 
-if (!is.null(x$N.info)) {
-  cat("Number of subjects: ", x$N.info, "\n", sep = "")
-}
-
-  if (!is.null(x$effects)) {
-    cat("\nEstimated relative effects\n")
-    cat("-------------------------------------------------\n")
-    print(x$effects, digits = digits)
+  if (!is.null(x$text.ranks)) {
+    cat("Ranking: ", x$text.ranks, "\n", sep = "")
   }
 
-  if (!is.null(x$factor.info)) {
-    print(x$factor.info, digits = digits)
+  if (!is.null(x$CI.method) && identical(x$hypothesis, "H0p")) {
+    cat("Confidence interval method: ", x$CI.method, "\n", sep = "")
   }
+
+  if (!is.na(x$n.effects)) {
+    cat("Number of estimated effects: ", x$n.effects, "\n", sep = "")
+  }
+
+  cat("\nAdditional results\n")
+  cat("-------------------------------------------------\n")
+  cat("Factor-specific information: ",
+      if (isTRUE(x$has.factor.info)) "yes" else "no", "\n", sep = "")
+  cat("Multiple contrast test procedure: ",
+      if (isTRUE(x$has.MCTP)) "yes" else "no", "\n", sep = "")
+  cat("Covariance matrix: ",
+      if (isTRUE(x$has.covariance)) "yes" else "no", "\n", sep = "")
+  cat("Permutation test: ",
+      if (isTRUE(x$has.permutation)) "yes" else "no", "\n", sep = "")
 
   if (!is.null(x$WTS)) {
     cat("\nWald-type statistic (WTS)\n")
     cat("-------------------------------------------------\n")
-   .nparld_print_table(x$WTS, digits = digits)
+    .nparld_print_table(x$WTS, digits = digits)
   }
 
   if (!is.null(x$ATS)) {
@@ -305,18 +321,16 @@ if (!is.null(x$N.info)) {
     .nparld_print_table(x$ATS, digits = digits)
   }
 
-  if (!is.null(x$MCTP)) {
-    print(x$MCTP, digits = digits)
+  if (!is.null(x$MCTP.global)) {
+    cat("\nGlobal multiple contrast result\n")
+    cat("-------------------------------------------------\n")
+    .nparld_print_table(x$MCTP.global, digits = digits)
   }
 
-  if (!is.null(x$covariance.info)) {
-    print(x$covariance.info, digits = digits)
-  }
-
-  if (!is.null(x$Permutation) && !is.null(x$Permutation$table)) {
+  if (!is.null(x$Permutation)) {
     cat("\nPermutation test\n")
     cat("-------------------------------------------------\n")
-    print(x$Permutation$table, digits = digits)
+    .nparld_print_table(x$Permutation, digits = digits)
   }
 
   invisible(x)
