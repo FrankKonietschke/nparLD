@@ -3,7 +3,7 @@
 \docType{data}
 \name{shoulder}
 \alias{shoulder}
-\title{Shoulder Tip Pain Study}
+\title{Shoulder tip pain study}
 \format{
 A data frame with variables:
 \describe{
@@ -24,7 +24,7 @@ study includes treatment group, gender group, and repeated pain measurements.
 \examples{
 data(shoulder)
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group1 * group2 * time,
               data = shoulder,
               subject = "subject",
@@ -32,7 +32,7 @@ fit <- nparLD(resp ~ group1 * group2 * time,
 fit
 }
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group1 * group2 * time,
               data = shoulder,
               subject = "subject",
@@ -41,7 +41,7 @@ fit <- nparLD(resp ~ group1 * group2 * time,
               Factor.Information=TRUE)
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 }
 
 }

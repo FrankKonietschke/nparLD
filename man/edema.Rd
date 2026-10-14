@@ -3,7 +3,7 @@
 \docType{data}
 \name{edema}
 \alias{edema}
-\title{Postoperative Edema Study}
+\title{Postoperative edema study}
 \format{
 A data frame with variables:
 \describe{
@@ -24,7 +24,7 @@ compares treatment groups and includes two repeated-measures factors.
 \examples{
 data(edema)
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group * time1 * time2,
               data = edema,
               subject = "subject",
@@ -32,7 +32,7 @@ fit <- nparLD(resp ~ group * time1 * time2,
 fit
 }
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group * time1 * time2,
               data = edema,
               subject = "subject",
@@ -41,7 +41,7 @@ fit <- nparLD(resp ~ group * time1 * time2,
               Factor.Information = TRUE)
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 }
 
 }

@@ -12,18 +12,27 @@
 \item{...}{Further arguments passed to or from other methods.}
 }
 \value{
-An object of class \code{"summary.nparld_fit"} containing selected
-components of the fitted model.
+An object of class \code{"summary.nparld_fit"} containing the
+detailed results of the fitted model.
 }
 \description{
-Extracts the main components of a fitted \code{nparLD()} object into a
-structured summary object. The summary is useful for inspecting, printing, or
-programmatically accessing the main results without working directly with all
-internal components of the fitted object.
+Produces a detailed summary of a fitted \code{nparLD()} model.
 }
 \details{
-The summary method returns a structured list containing the main components
-of the fitted object. In contrast to \code{print()}, which is mainly intended
-for console display, \code{summary()} is useful for storing or extracting the
-main results programmatically.
+The summary method collects the principal results of the fitted model into a
+structured object and provides the detailed counterpart to the concise
+\code{print()} method.
+
+The summary includes information on the detected design, whole-plot and
+subplot factors, number of subjects, hypothesis type, ranking method, and,
+for effect-based inference, the confidence interval method. It also contains
+estimated relative effects, factor-specific effect summaries when available,
+Wald-type and ANOVA-type statistics, multiple contrast results when
+requested, and permutation-test results when available.
+
+The returned object can be printed using the corresponding
+\code{print.summary.nparld_fit()} method or inspected programmatically.
+Large auxiliary components, such as covariance matrices, are not included
+in the printed summary and can be obtained through the corresponding
+accessor functions.
 }

@@ -1,4 +1,4 @@
-#' Alpha-amylase Saliva Study
+#' Alpha-amylase saliva study
 #'
 #' Measurements of alpha-amylase levels in saliva from healthy volunteers.
 #' The study illustrates a two-factor longitudinal design with two repeated
@@ -31,14 +31,14 @@
 #'               Factor.Information = TRUE)
 #' fit
 #' plot(fit)
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #'
 #' @docType data
 #' @keywords datasets
 "amylase"
 
 
-#' Dental Growth Study
+#' Dental growth study
 #'
 #' Measurements of distances between the center of the pituitary and the
 #' pterygomaxillary fissure in boys. The data illustrate a one-factor
@@ -56,7 +56,7 @@
 #'
 #' dental$time <- factor(dental$time)
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ time,
 #'               data = dental,
 #'               subject = "subject",
@@ -64,7 +64,7 @@
 #' fit
 #' }
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ time,
 #'               data = dental,
 #'               subject = "subject",
@@ -72,7 +72,7 @@
 #'               contrast = list("time", "Tukey"))
 #' fit
 #' plot(fit)
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #'}
 #'
 #' @docType data
@@ -80,7 +80,7 @@
 "dental"
 
 
-#' Postoperative Edema Study
+#' Postoperative edema study
 #'
 #' Skin-temperature measurements from patients after hand surgery. The study
 #' compares treatment groups and includes two repeated-measures factors.
@@ -97,7 +97,7 @@
 #' @examples
 #' data(edema)
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group * time1 * time2,
 #'               data = edema,
 #'               subject = "subject",
@@ -105,7 +105,7 @@
 #' fit
 #' }
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group * time1 * time2,
 #'               data = edema,
 #'               subject = "subject",
@@ -114,7 +114,7 @@
 #'               Factor.Information = TRUE)
 #' fit
 #' plot(fit)
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #' }
 #'
 #' @docType data
@@ -122,7 +122,7 @@
 "edema"
 
 
-#' Panic Disorder Study I
+#' Panic disorder study I
 #'
 #' Clinical Global Impression scores from patients with panic disorder and
 #' agoraphobia. The data illustrate a one-factor longitudinal design with
@@ -138,7 +138,7 @@
 #' @examples
 #' data(panic)
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ time,
 #'               data = panic,
 #'               subject = "subject",
@@ -146,7 +146,7 @@
 #' fit
 #' }
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ time,
 #'               data = panic,
 #'               subject = "subject",
@@ -154,7 +154,7 @@
 #'               contrast = list("time", "Dunnett"))
 #' fit
 #' plot(fit)
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #' }
 #'
 #' @docType data
@@ -162,7 +162,7 @@
 "panic"
 
 
-#' Panic Disorder Study II
+#' Panic disorder study II
 #'
 #' Panic and agoraphobia scores from patients with panic disorder, with or
 #' without agoraphobia. The data illustrate a factorial longitudinal design with
@@ -179,7 +179,7 @@
 #' @examples
 #' data(panic2)
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = panic2,
 #'               subject = "subject",
@@ -187,7 +187,7 @@
 #' fit
 #' }
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = panic2,
 #'               subject = "subject",
@@ -197,7 +197,7 @@
 #'               covariance=TRUE)
 #' fit
 #' plot(fit)
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #' }
 #'
 #' @docType data
@@ -205,7 +205,7 @@
 "panic2"
 
 
-#' Plasma-renin Activity Study
+#' Plasma-renin activity study
 #'
 #' Plasma-renin activity measurements from a randomized study of healthy
 #' non-smokers. The data illustrate a factorial longitudinal design with one
@@ -222,7 +222,7 @@
 #' @examples
 #' data(plasma)
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = plasma,
 #'               subject = "subject",
@@ -230,7 +230,7 @@
 #' fit
 #' }
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = plasma,
 #'               subject = "subject",
@@ -238,7 +238,7 @@
 #'               contrast = list("group", "Tukey"))
 #' fit
 #' plot(fit)
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #' }
 #'
 #' @docType data
@@ -246,7 +246,7 @@
 "plasma"
 
 
-#' Rat Growth Study
+#' Rat growth study
 #'
 #' Body-weight measurements from rats observed over a five-week period. The data
 #' illustrate longitudinal growth curves in several treatment groups.
@@ -261,7 +261,7 @@
 #'
 #' @examples
 #' 
-#' \dontrun{
+#' \donttest{
 #' data(rat)
 #'
 #' fit <- nparLD(resp ~ group * time,
@@ -271,7 +271,7 @@
 #' fit
 #'}
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = rat,
 #'               subject = "subject",
@@ -279,7 +279,7 @@
 #'               contrast = list("group:time"))
 #' fit
 #' plot(fit)
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #' }
 #'
 #' @docType data
@@ -287,7 +287,7 @@
 "rat"
 
 
-#' Respiratory Disorder Study
+#' Respiratory disorder study
 #'
 #' Ordinal health-status measurements from patients with a respiratory disorder.
 #' The data include study center, treatment group, and repeated visits.
@@ -303,7 +303,7 @@
 #'
 #' @examples
 #'
-#' \dontrun{
+#' \donttest{
 #' data(respiration)
 #'
 #' fit <- nparLD(resp ~ center * treatment * time,
@@ -313,7 +313,7 @@
 #' fit
 #' }
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ center * treatment * time,
 #'               data = respiration,
 #'               subject = "patient",
@@ -321,7 +321,7 @@
 #'               contrast = list("treatment", "Tukey"))
 #' fit
 #' plot(fit)
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #' }
 #'
 #' @docType data
@@ -329,7 +329,7 @@
 "respiration"
 
 
-#' Shoulder Tip Pain Study
+#' Shoulder tip pain study
 #'
 #' Shoulder pain scores from patients after laparoscopic abdominal surgery. The
 #' study includes treatment group, gender group, and repeated pain measurements.
@@ -346,7 +346,7 @@
 #' @examples
 #' data(shoulder)
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group1 * group2 * time,
 #'               data = shoulder,
 #'               subject = "subject",
@@ -354,7 +354,7 @@
 #' fit
 #' }
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group1 * group2 * time,
 #'               data = shoulder,
 #'               subject = "subject",
@@ -363,7 +363,7 @@
 #'               Factor.Information=TRUE)
 #' fit
 #' plot(fit)
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #' }
 #'
 #' @docType data
@@ -371,7 +371,7 @@
 "shoulder"
 
 
-#' Vitality of Treetops
+#' Vitality of treetops
 #'
 #' Repeated vitality scores of treetops from three experimental areas. The data
 #' illustrate an ordinal longitudinal response in several groups.
@@ -387,7 +387,7 @@
 #' @examples
 #' data(tree)
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = tree,
 #'               subject = "subject",
@@ -396,7 +396,7 @@
 #'}
 #'
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- nparLD(resp ~ group * time,
 #'               data = tree,
 #'               subject = "subject",
@@ -404,7 +404,7 @@
 #'               contrast = list("group:time"))
 #' fit
 #' plot(fit)
-#' plot(fit$MCTP)
+#' plot(MCTP(fit))
 #'}
 #'
 #' @docType data
@@ -432,7 +432,7 @@
 #' `replicate`, `dose`, and `resp` for consistency with the examples.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(brdu)
 #'
 #' fit <- nparLD(

@@ -3,7 +3,7 @@
 \docType{data}
 \name{plasma}
 \alias{plasma}
-\title{Plasma-renin Activity Study}
+\title{Plasma-renin activity study}
 \format{
 A data frame with variables:
 \describe{
@@ -24,7 +24,7 @@ whole-plot factor and one repeated-measures factor.
 \examples{
 data(plasma)
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group * time,
               data = plasma,
               subject = "subject",
@@ -32,7 +32,7 @@ fit <- nparLD(resp ~ group * time,
 fit
 }
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group * time,
               data = plasma,
               subject = "subject",
@@ -40,7 +40,7 @@ fit <- nparLD(resp ~ group * time,
               contrast = list("group", "Tukey"))
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 }
 
 }

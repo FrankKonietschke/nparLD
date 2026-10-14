@@ -2,7 +2,7 @@
 % Please edit documentation in R/nparLD.R
 \name{nparLD}
 \alias{nparLD}
-\title{Nonparametric Analysis of Longitudinal Data}
+\title{Nonparametric analysis of longitudinal data}
 \usage{
 nparLD(
   formula,
@@ -208,7 +208,7 @@ fit_dental
 ## Crossed factorial longitudinal design: shoulder data
 data(shoulder)
 
-\dontrun{
+\donttest{
 fit_shoulder <- nparLD(
   resp ~ group1 * group2 * time,
   data = shoulder,
@@ -221,7 +221,7 @@ fit_shoulder
 
 ## Multiple contrast procedure for an interaction
 
-\dontrun{
+\donttest{
 fit_contrast <- nparLD(
   resp ~ group1 * group2 * time,
   data = shoulder,
@@ -230,12 +230,12 @@ fit_contrast <- nparLD(
   contrast = list("group1:time")
 )
 
-fit_contrast$MCTP
-print(fit_contrast$MCTP, show.matrix = TRUE)
+MCTP(fit_contrast)
+print(MCTP(fit_contrast), show.matrix = TRUE)
 }
 
 ## Missing response values
-\dontrun{
+\donttest{
 dat_miss <- dental
 dat_miss$resp[c(2, 7, 12)] <- NA
 
@@ -252,7 +252,7 @@ fit_miss
 ## Dependent replicate measurements: BrdU data
 data(brdu)
 
-\dontrun{
+\donttest{
 fit_brdu <- nparLD(
   resp ~ dose,
   data = brdu,
@@ -265,11 +265,11 @@ fit_brdu <- nparLD(
 fit_brdu
 }
 
-\dontrun{
+\donttest{
 ## Graphical displays
 plot(fit_dental)
 plot(fit_shoulder)
-plot(fit_contrast$MCTP)
+plot(MCTP(fit_contrast))
 }
 
 

@@ -1,4 +1,4 @@
-#' Nonparametric Analysis of Longitudinal Data
+#' Nonparametric analysis of longitudinal data
 #'
 #' Performs nonparametric inference for longitudinal or repeated-measures data
 #' from crossed factorial experiments. The function can be used to test hypotheses in
@@ -174,7 +174,7 @@
 #' ## Crossed factorial longitudinal design: shoulder data
 #' data(shoulder)
 #'
-#' \dontrun{
+#' \donttest{
 #' fit_shoulder <- nparLD(
 #'   resp ~ group1 * group2 * time,
 #'   data = shoulder,
@@ -187,7 +187,7 @@
 #'
 #' ## Multiple contrast procedure for an interaction
 #'
-#' \dontrun{
+#' \donttest{
 #' fit_contrast <- nparLD(
 #'   resp ~ group1 * group2 * time,
 #'   data = shoulder,
@@ -196,12 +196,12 @@
 #'   contrast = list("group1:time")
 #' )
 #'
-#' fit_contrast$MCTP
-#' print(fit_contrast$MCTP, show.matrix = TRUE)
+#' MCTP(fit_contrast)
+#' print(MCTP(fit_contrast), show.matrix = TRUE)
 #' }
 #' 
 #' ## Missing response values
-#' \dontrun{
+#' \donttest{
 #' dat_miss <- dental
 #' dat_miss$resp[c(2, 7, 12)] <- NA
 #'
@@ -218,7 +218,7 @@
 #' ## Dependent replicate measurements: BrdU data
 #' data(brdu)
 #'
-#' \dontrun{
+#' \donttest{
 #' fit_brdu <- nparLD(
 #'   resp ~ dose,
 #'   data = brdu,
@@ -231,11 +231,11 @@
 #' fit_brdu
 #'}
 #'
-#' \dontrun{
+#' \donttest{
 #' ## Graphical displays
 #' plot(fit_dental)
 #' plot(fit_shoulder)
-#' plot(fit_contrast$MCTP)
+#' plot(MCTP(fit_contrast))
 #' }
 #'
 #'

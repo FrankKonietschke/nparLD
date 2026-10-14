@@ -3,7 +3,7 @@
 \docType{data}
 \name{tree}
 \alias{tree}
-\title{Vitality of Treetops}
+\title{Vitality of treetops}
 \format{
 A data frame with variables:
 \describe{
@@ -23,7 +23,7 @@ illustrate an ordinal longitudinal response in several groups.
 \examples{
 data(tree)
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group * time,
               data = tree,
               subject = "subject",
@@ -32,7 +32,7 @@ fit
 }
 
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group * time,
               data = tree,
               subject = "subject",
@@ -40,7 +40,7 @@ fit <- nparLD(resp ~ group * time,
               contrast = list("group:time"))
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 }
 
 }

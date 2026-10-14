@@ -2,7 +2,7 @@
 % Please edit documentation in R/Utility.R
 \name{print.nparld_fit}
 \alias{print.nparld_fit}
-\title{Print nparLD fit}
+\title{Print an nparLD fit}
 \usage{
 \method{print}{nparld_fit}(x, digits = 4, ...)
 }
@@ -14,16 +14,23 @@
 \item{...}{Further arguments.}
 }
 \description{
-Prints the main results of a fitted \code{nparLD()} model, including the
-detected design, hypothesis type, ranking method, estimated relative effects,
-and global WTS and ATS results. Optional components such as factor-specific
-information, multiple contrast results, covariance matrices, and permutation
-tests are displayed when available.
+Prints a concise overview of a fitted \code{nparLD()} model.
 }
 \details{
-The print method displays the detected design, sample size information,
-hypothesis type, ranking method, estimated relative effects, and global WTS
-and ATS results. Optional components are printed when available, including
-factor-specific information, multiple contrast results, covariance matrices,
-and permutation test results.
+The print method provides a compact summary of the fitted model, including
+the detected design, whole-plot and subplot factors, number of subjects,
+hypothesis type, ranking method, and, for effect-based inference, the
+confidence interval method.
+
+The inferential output is intentionally restricted to the ANOVA-type
+statistic (ATS) in order to keep the standard print output concise.
+More detailed results, including estimated relative effects, factor-specific
+summaries, Wald-type statistics, multiple contrast procedures, and
+permutation-test results when available, are provided by
+\code{summary()}. Individual result components can also be extracted using
+the corresponding accessor functions.
+
+If a multiple contrast procedure was requested during model fitting, the
+print method indicates that the corresponding results are available through
+\code{MCTP()}.
 }

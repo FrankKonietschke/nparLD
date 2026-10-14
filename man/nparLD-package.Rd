@@ -3,7 +3,7 @@
 \docType{package}
 \name{nparLD-package}
 \alias{nparLD-package}
-\title{nparLD: Nonparametric Longitudinal Data Analysis}
+\title{nparLD: nonparametric longitudinal data analysis}
 \description{
 The \pkg{nparLD} package provides nonparametric methods for the analysis of
 longitudinal and repeated-measures data in factorial experiments. It is
@@ -58,6 +58,14 @@ whether subject-condition cells or individual replicate observations define
 the target of estimation.
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/FrankKonietschke/nparLD}
+  \item Report bugs at \url{https://github.com/FrankKonietschke/nparLD/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Frank Konietschke \email{frank.konietschke@charite.de}
 
@@ -72,6 +80,7 @@ Other contributors:
   \item Mahbub Latif (Original package author) [contributor]
   \item Karthinathan Thangavelu (Original package author) [contributor]
   \item Yulia R. Gel (Original package author) [contributor]
+  \item Marek Sztuka (Revised package author) [contributor]
   \item Edgar Brunner [contributor]
 }
 

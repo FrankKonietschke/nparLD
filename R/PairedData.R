@@ -124,8 +124,11 @@ CI_t_upper <- obs$p_hat + t_quant * se
   }
   
   # p-value
-  p1 <- mean(M_perm >= M_obs)
-  p_value <- min(2*p1, 2 - 2*p1)
+# permutation p-value with Monte Carlo correction
+p_upper <- (1 + sum(M_perm >= M_obs)) / (B + 1)
+p_lower <- (1 + sum(M_perm <= M_obs)) / (B + 1)
+
+p_value <- min(1, 2 * min(p_upper, p_lower))
   
   # --- CI via permutation quantiles (Eq. 3.4) ---
   q_low  <- quantile(M_perm, probs = alpha/2, na.rm = TRUE)

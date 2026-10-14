@@ -3,7 +3,7 @@
 \docType{data}
 \name{rat}
 \alias{rat}
-\title{Rat Growth Study}
+\title{Rat growth study}
 \format{
 A data frame with variables:
 \describe{
@@ -22,7 +22,7 @@ illustrate longitudinal growth curves in several treatment groups.
 }
 \examples{
 
-\dontrun{
+\donttest{
 data(rat)
 
 fit <- nparLD(resp ~ group * time,
@@ -32,7 +32,7 @@ fit <- nparLD(resp ~ group * time,
 fit
 }
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group * time,
               data = rat,
               subject = "subject",
@@ -40,7 +40,7 @@ fit <- nparLD(resp ~ group * time,
               contrast = list("group:time"))
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 }
 
 }

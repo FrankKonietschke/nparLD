@@ -3,7 +3,7 @@
 \docType{data}
 \name{respiration}
 \alias{respiration}
-\title{Respiratory Disorder Study}
+\title{Respiratory disorder study}
 \format{
 A data frame with variables:
 \describe{
@@ -23,7 +23,7 @@ The data include study center, treatment group, and repeated visits.
 }
 \examples{
 
-\dontrun{
+\donttest{
 data(respiration)
 
 fit <- nparLD(resp ~ center * treatment * time,
@@ -33,7 +33,7 @@ fit <- nparLD(resp ~ center * treatment * time,
 fit
 }
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ center * treatment * time,
               data = respiration,
               subject = "patient",
@@ -41,7 +41,7 @@ fit <- nparLD(resp ~ center * treatment * time,
               contrast = list("treatment", "Tukey"))
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 }
 
 }

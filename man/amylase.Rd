@@ -3,7 +3,7 @@
 \docType{data}
 \name{amylase}
 \alias{amylase}
-\title{Alpha-amylase Saliva Study}
+\title{Alpha-amylase saliva study}
 \format{
 A data frame with variables:
 \describe{
@@ -40,7 +40,7 @@ fit <- nparLD(resp ~ time1 * time2,
               Factor.Information = TRUE)
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 
 }
 \keyword{datasets}

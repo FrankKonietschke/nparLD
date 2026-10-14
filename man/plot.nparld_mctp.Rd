@@ -66,7 +66,7 @@ fit <- nparLD(
   contrast = list("time", "Dunnett")
 )
 
-plot(fit$MCTP)
+plot(MCTP(fit))
 }
 
 }

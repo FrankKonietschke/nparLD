@@ -27,3 +27,22 @@
 * Earlier design-specific ordering arguments are no longer part of the main interface.
 * Classical designs such as `LD-F1`, `F1-LD-F1`, `LD-F2`, `F1-LD-F2`, and `F2-LD-F1` are now specified through the formula interface.
 
+# nparLD 2.3.2
+
+* Added accessor functions for fitted-model results.
+* Revised print and summary methods.
+* Improved p-value formatting.
+* Added accessors for covariance, contrast matrices, and permutation results.
+* Corrected Monte Carlo p-value calculation for paired permutation tests.
+* Improved documentation, examples, and plotting reproducibility.
+
+# nparLD 2.3.3
+
+* Revised `print()` and `summary()` methods for fitted `nparLD` objects.
+  `print()` now provides a concise model overview and the ANOVA-type
+  statistic, whereas `summary()` provides detailed effect estimates and
+  inferential results.
+* Multiple contrast, factor-specific, permutation, and other detailed
+  results remain available through `summary()` and dedicated accessor
+  functions.
+* Updated documentation and examples accordingly.

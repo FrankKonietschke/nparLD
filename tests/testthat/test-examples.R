@@ -471,3 +471,124 @@ test_that("effects preserve numeric factor-level order with missing values", {
   expect_equal(as.character(fit$effects$time), c("8", "10", "12", "14"))
   expect_equal(fit$effects$Nmiss, c(3L, 0L, 0L, 0L))
 })
+
+test_that("print.nparld_fit is concise", {
+
+  data("dental", package = "nparLD")
+
+  fit <- nparLD(
+    resp ~ time,
+    data = dental,
+    subject = "subject",
+    hypothesis = "H0p"
+  )
+
+  out <- capture.output(print(fit))
+
+  expect_true(
+    any(grepl("ANOVA-type statistic", out, fixed = TRUE))
+  )
+
+  expect_true(
+  any(grepl("Use summary(x) for detailed results.", out, fixed = TRUE))
+)
+
+  expect_false(
+    any(grepl("Estimated relative effects", out, fixed = TRUE))
+  )
+
+  expect_false(
+    any(grepl("Wald-type statistic", out, fixed = TRUE))
+  )
+
+  expect_false(
+    any(grepl("Multiple contrast test procedure", out, fixed = TRUE))
+  )
+})
+
+test_that("summary output is more detailed than print output", {
+
+  data("dental", package = "nparLD")
+
+  fit <- nparLD(
+    resp ~ time,
+    data = dental,
+    subject = "subject",
+    hypothesis = "H0p"
+  )
+
+  print_out <- capture.output(print(fit))
+  summary_out <- capture.output(print(summary(fit)))
+
+  ## print() is concise
+  expect_true(
+    any(grepl("ANOVA-type statistic", print_out, fixed = TRUE))
+  )
+  expect_false(
+    any(grepl("Estimated relative effects", print_out, fixed = TRUE))
+  )
+  expect_false(
+    any(grepl("Wald-type statistic", print_out, fixed = TRUE))
+  )
+
+  ## summary() is detailed
+  expect_true(
+    any(grepl("Estimated relative effects", summary_out, fixed = TRUE))
+  )
+  expect_true(
+    any(grepl("Wald-type statistic", summary_out, fixed = TRUE))
+  )
+  expect_true(
+    any(grepl("ANOVA-type statistic", summary_out, fixed = TRUE))
+  )
+
+  ## summary output should be longer than print output
+  expect_gt(length(summary_out), length(print_out))
+})
+
+test_that("summary includes requested MCTP results", {
+
+  data("panic2", package = "nparLD")
+
+  set.seed(12345)
+
+  fit.mctp <- nparLD(
+    resp ~ group * time,
+    data = panic2,
+    subject = "subject",
+    hypothesis = "H0p",
+    contrast = list("time", "Dunnett")
+  )
+
+  out <- capture.output(summary(fit.mctp))
+
+  expect_true(
+    any(grepl("Multiple contrast test procedure", out, fixed = TRUE))
+  )
+})
+
+test_that("print indicates available MCTP without printing full results", {
+
+  data("shoulder", package = "nparLD")
+
+  set.seed(12345)
+
+  fit <- nparLD(
+    resp ~ group1 * group2 * time,
+    data = shoulder,
+    subject = "subject",
+    hypothesis = "H0p",
+    contrast = list("group1:time")
+  )
+
+  out <- capture.output(print(fit))
+
+  expect_true(
+    any(grepl("Multiple contrast results available via MCTP(x).",
+              out, fixed = TRUE))
+  )
+
+  expect_false(
+    any(grepl("Global multiple contrast result", out, fixed = TRUE))
+  )
+})

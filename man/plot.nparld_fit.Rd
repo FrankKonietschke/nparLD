@@ -44,13 +44,15 @@ relative effects in \code{x$effects} are plotted.}
 }
 \description{
 Displays graphical summaries of estimated relative effects from an
-\code{nparLD()} fit. By default, the method plots the cell-level relative
-effects stored in \code{x$effects}. If \code{term} is supplied, it plots
-factor-specific relative effects and confidence intervals for selected main
-effects or interactions. Term-specific plots require that the model was fitted
-with \code{Factor.Information = TRUE}.
+\code{nparLD()} fit.
 }
 \details{
+If \code{term} is not supplied, estimated relative effects and confidence
+intervals are plotted for the full factorial design. If \code{term} is
+supplied, factor-specific relative effects and confidence intervals are
+plotted for the selected main effect or interaction. Term-specific plots
+require that the model was fitted with \code{Factor.Information = TRUE}.
+
 The default plot displays the estimated cell-level relative effects. If
 \code{term} is supplied, the plot displays factor-specific relative effects
 and confidence intervals for the selected main effects or interactions. This

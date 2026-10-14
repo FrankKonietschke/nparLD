@@ -3,7 +3,7 @@
 \docType{data}
 \name{dental}
 \alias{dental}
-\title{Dental Growth Study}
+\title{Dental growth study}
 \format{
 A data frame with variables:
 \describe{
@@ -25,7 +25,7 @@ data(dental)
 
 dental$time <- factor(dental$time)
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ time,
               data = dental,
               subject = "subject",
@@ -33,7 +33,7 @@ fit <- nparLD(resp ~ time,
 fit
 }
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ time,
               data = dental,
               subject = "subject",
@@ -41,7 +41,7 @@ fit <- nparLD(resp ~ time,
               contrast = list("time", "Tukey"))
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 }
 
 }

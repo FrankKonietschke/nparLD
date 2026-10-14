@@ -13,10 +13,25 @@
 
 \item{...}{Further arguments.}
 }
+\value{
+The summary object is returned invisibly.
+}
 \description{
-Prints the main components of a summarized \code{nparLD()} fit, including
-design information, hypothesis type, estimated relative effects, and global
-WTS and ATS results. Optional components such as factor-specific information,
-multiple contrast results, covariance matrices, and permutation tests are
-displayed when available.
+Prints the detailed summary of a fitted \code{nparLD()} model.
+}
+\details{
+The summary print method provides a detailed representation of the fitted
+model. It displays design information, hypothesis and ranking information,
+estimated relative effects, factor-specific effect summaries when available,
+and the global Wald-type and ANOVA-type statistics.
+
+If additional inferential procedures were requested during model fitting,
+multiple contrast results and permutation-test results are also printed.
+Large auxiliary components, such as covariance matrices, are not printed
+automatically and can be obtained through the corresponding accessor
+functions.
+
+This method is intentionally more detailed than
+\code{print.nparld_fit()}, which provides a concise overview of the fitted
+model and the ANOVA-type statistic.
 }

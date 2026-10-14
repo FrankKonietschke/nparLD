@@ -3,7 +3,7 @@
 \docType{data}
 \name{panic}
 \alias{panic}
-\title{Panic Disorder Study I}
+\title{Panic disorder study I}
 \format{
 A data frame with variables:
 \describe{
@@ -23,7 +23,7 @@ ordinal responses.
 \examples{
 data(panic)
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ time,
               data = panic,
               subject = "subject",
@@ -31,7 +31,7 @@ fit <- nparLD(resp ~ time,
 fit
 }
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ time,
               data = panic,
               subject = "subject",
@@ -39,7 +39,7 @@ fit <- nparLD(resp ~ time,
               contrast = list("time", "Dunnett"))
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 }
 
 }

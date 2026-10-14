@@ -212,11 +212,22 @@ fit_dental <- nparLD(
 fit_dental
 ```
 
+The fitted object provides print, summary, plot, and accessor methods.
+Printing the fitted object gives a concise overview together with the ATS,
+whereas `summary()` provides the detailed model output. The main global test
+tables can be extracted with `WTS()` and `ATS()`.
+
+```{r}
+WTS(fit_dental)
+ATS(fit_dental)
+```
+
+
 ## A factorial longitudinal example
 
 ```{r shoulder-example, fig.width = 7, fig.height = 5}
 data(shoulder)
-
+set.seed(12345)
 fit_shoulder <- nparLD(
   resp ~ group1 * group2 * time,
   data = shoulder,
@@ -227,7 +238,7 @@ fit_shoulder <- nparLD(
 
 fit_shoulder
 plot(fit_shoulder)
-plot(fit_shoulder$MCTP)
+plot(MCTP(fit_shoulder))
 ```
 
 ## Missing observations
@@ -271,7 +282,8 @@ fit_miss <- nparLD(
 
 fit_miss
 ```
-The descriptive table in the output lists the number of subjects and missing values for every condition.
+The descriptive effect table available through `effects()` lists the number of
+subjects and missing values for every condition.
 
 
 ## Dependent replicate measurements
@@ -345,6 +357,8 @@ fit_brdu_observations <- nparLD(
 fit_brdu_subjects
 fit_brdu_observations
 
+effects(fit_brdu_subjects)
+effects(fit_brdu_observations)
 ```
 
 For relative marginal effects, `cell.weights = "subjects"` targets a typical
@@ -386,7 +400,7 @@ plot(fit_shoulder_info, term = c("time", "group1:time"))
 The horizontal reference line at 0.5 marks the value corresponding to no tendency
 relative to the reference distribution. Values above 0.5 indicate a tendency
 toward larger responses, whereas values below 0.5 indicate a tendency toward
-smaller responses. The plots are `ggplot2` plots and hence can be adapted (e.g., in crease font) in the usual way. 
+smaller responses. The plots are `ggplot2` plots and hence can be adapted (e.g., by increasing the font size) in the usual way. 
 
 ## Test statistics and multiple contrasts
 
@@ -481,13 +495,13 @@ contrast = list("group:time")
 requests a multiple contrast procedure for the interaction between `group` and
 `time`.
 
-When multiple contrasts are requested, the output contains a global multiple
-contrast test and local contrast estimates with standard errors, simultaneous
-confidence intervals, test statistics, adjusted p-values, and degrees of
-freedom. The contrast results can also be plotted:
+When multiple contrasts are requested, the fitted object contains a global
+multiple contrast test and local contrast estimates with standard errors,
+simultaneous confidence intervals, test statistics, adjusted p-values, and
+degrees of freedom. These results can be obtained with `MCTP()`. The contrast results can also be plotted:
 
 ```{r, eval = FALSE}
-plot(fit$MCTP)
+plot(MCTP(fit))
 ```
 
 Note that all procedures testing the null hypothesis `"H0F"` can not yield 
@@ -504,7 +518,6 @@ within-subject factor.
 
 ```{r shoulder-data}
 data(shoulder)
-
 str(shoulder)
 ```
 
@@ -557,6 +570,7 @@ following call computes contrasts for the interaction between `group1` and
 `time`:
 
 ```{r shoulder-mctp}
+set.seed(12345)
 fit_shoulder_contrast <- nparLD(
   resp ~ group1 * group2 * time,
   data = shoulder,
@@ -565,11 +579,11 @@ fit_shoulder_contrast <- nparLD(
   contrast = list("group1:time")
 )
 
-fit_shoulder_contrast$MCTP
+MCTP(fit_shoulder_contrast)
 ```
 
 ```{r shoulder-mctp-plot, fig.width = 7, fig.height = 5}
-plot(fit_shoulder_contrast$MCTP)
+plot(MCTP(fit_shoulder_contrast))
 ```
 
 This output contains both a global multiple contrast test and local contrast
@@ -577,61 +591,45 @@ results with simultaneous confidence intervals.
 
 ## Interpreting the output
 
-The object returned by `nparLD()` contains several components. Printing the
-object gives a compact summary of the design, the selected hypothesis type, the
-estimated effects, and the available test results. The most commonly used
-components are `effects`, `WTS`, `ATS`, and, when multiple contrasts are
-requested, `MCTP`.
+Printing an `nparLD` fit provides a concise overview of the detected design,
+the selected hypothesis type, the ranking method, and the ANOVA-type statistic
+(ATS). Detailed results are available through `summary()` and the dedicated
+accessor functions.
 
-The component `effects` contains the estimated relative effects for the
-factorial cells. It includes the factor-level combinations, the number of
-contributing subjects and observations, the number of missing observations, the
-estimated relative effect, and its standard error. For analyses with
-`hypothesis = "H0p"`, confidence limits are also returned.
+The detailed summary contains the estimated relative effects, factor-specific
+effect summaries when available, Wald-type and ANOVA-type statistics, and
+additional inferential results such as multiple contrast procedures and
+permutation-test results when requested.
 
-```{r effects-component}
-head(fit_shoulder_p$effects)
+```{r summary_fit_shoulder_p}
+summary(fit_shoulder_p)
 ```
 
-The components `WTS` and `ATS` contain the global tests for the main effects and
-interactions defined by the model formula.
 
-```{r test-components}
-fit_shoulder_p$WTS
-fit_shoulder_p$ATS
+## Paired two-time-point designs and permutation tests
+
+For paired designs with exactly two repeated-measures levels, nparLD provides
+an optional studentized permutation test. It is requested with
+perm.test = TRUE. The number of Monte Carlo permutation samples is controlled
+by B, and the resulting test table can be extracted with `permTest()`.
+A fixed random seed is used here to make the resampling result reproducible.
+
+```{r paired-permutation}
+data("panic", package = "nparLD")
+panic.paired <- subset(panic, time <= 2)
+set.seed(12415)
+fit.panic <- nparLD(
+  resp ~ time,
+  data = panic.paired,
+  subject = "subject",
+  hypothesis = "H0p",
+  perm.test = TRUE,
+  B = 999
+)
+
+permTest(fit.panic, table = TRUE)
 ```
 
-The Wald-type statistic uses the estimated covariance matrix directly, whereas
-the ANOVA-type statistic uses a trace-based approximation. In practice, both
-statistics are useful summaries of the global hypotheses. Differences between
-the two may occur, especially in small samples, unbalanced designs, or settings
-with singular covariance structures.
-
-When multiple contrasts are requested, the component `MCTP` contains the
-corresponding contrast results.
-
-```{r mctp-component}
-fit_shoulder_contrast$MCTP
-```
-
-The local contrast table contains the estimated contrasts, standard errors,
-simultaneous confidence limits, test statistics, adjusted p-values, and degrees
-of freedom. These results are most naturally interpreted on the relative-effect
-scale. A simultaneous confidence interval that does not contain zero indicates a
-contrast that is significant after adjustment for the selected family of
-comparisons. 
-
-The estimated covariance matrix can be included in the output by setting
-`covariance = TRUE`. This option is mainly intended for methodological checks,
-advanced post-processing, or reproducibility of the reported test statistics.
-
-For graphical summaries, `plot()` can be applied to the fitted object or to the
-multiple contrast component.
-
-```{r output-plots, eval = FALSE}
-plot(fit_shoulder_p)
-plot(fit_shoulder_contrast$MCTP)
-```
 
 ## Practical recommendations
 

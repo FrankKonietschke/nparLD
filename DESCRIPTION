@@ -1,7 +1,7 @@
 Package: nparLD
 Type: Package
 Title: Nonparametric Analysis of Longitudinal Data in Factorial Experiments
-Version: 2.3.1
+Version: 2.3.3
 Authors@R: c(
     person(given = "Frank",
            family = "Konietschke",
@@ -23,11 +23,17 @@ Authors@R: c(
            family = "Gel",
            role = "ctb",
            comment = "Original package author"),
+   person(given = "Marek",
+           family = "Sztuka",
+           role = "ctb",
+           comment = "Revised package author"),
     person(given = "Edgar",
            family = "Brunner",
            role = "ctb")
  )
 Description: Provides nonparametric procedures for the analysis of longitudinal data in factorial experiments. The package implements hypothesis tests on marginal distribution functions and unweighted relative marginal effects. It supports arbitrary crossed factorial designs with longitudinal or repeated-measures factors, missing observations, dependent replicates, rank- and pseudo-rank-based inference, Wald-type and ANOVA-type statistics, multiple contrast tests, and simultaneous confidence intervals.
+URL: https://github.com/FrankKonietschke/nparLD
+BugReports: https://github.com/FrankKonietschke/nparLD/issues
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
@@ -39,7 +45,7 @@ Imports:
     multcomp,
     rlang
 Roxygen: list(markdown = TRUE)
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0
 Suggests: 
     knitr,
     rmarkdown,

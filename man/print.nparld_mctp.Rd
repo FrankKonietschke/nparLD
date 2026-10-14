@@ -26,7 +26,7 @@ The contrast matrix can optionally be displayed with
 \details{
 The method prints the global multiple contrast test and the local contrast
 results, including estimates, standard errors, simultaneous confidence
-limits, test statistics, adjusted p-values, and degrees of freedom. The
-contrast matrix is stored in \code{x$Contrast.Matrix} and is printed only
-when \code{show.matrix = TRUE}.
+limits, test statistics, adjusted p-values, and degrees of freedom.
+The contrast matrix can be displayed with \code{show.matrix = TRUE}
+or extracted with \code{contrastMatrix()}.
 }

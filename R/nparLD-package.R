@@ -1,5 +1,5 @@
 
-#' nparLD: Nonparametric Longitudinal Data Analysis
+#' nparLD: nonparametric longitudinal data analysis
 #'
 #' The \pkg{nparLD} package provides nonparametric methods for the analysis of
 #' longitudinal and repeated-measures data in factorial experiments. It is

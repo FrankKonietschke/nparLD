@@ -52,7 +52,7 @@ fit <- nparLD(
 
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 ```
 
 ## Weighted and unweighted relative effects
@@ -180,5 +180,5 @@ fit <- nparLD(
 
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 ```

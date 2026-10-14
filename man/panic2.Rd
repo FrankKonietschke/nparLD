@@ -3,7 +3,7 @@
 \docType{data}
 \name{panic2}
 \alias{panic2}
-\title{Panic Disorder Study II}
+\title{Panic disorder study II}
 \format{
 A data frame with variables:
 \describe{
@@ -24,7 +24,7 @@ one whole-plot factor and one repeated-measures factor.
 \examples{
 data(panic2)
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group * time,
               data = panic2,
               subject = "subject",
@@ -32,7 +32,7 @@ fit <- nparLD(resp ~ group * time,
 fit
 }
 
-\dontrun{
+\donttest{
 fit <- nparLD(resp ~ group * time,
               data = panic2,
               subject = "subject",
@@ -42,7 +42,7 @@ fit <- nparLD(resp ~ group * time,
               covariance=TRUE)
 fit
 plot(fit)
-plot(fit$MCTP)
+plot(MCTP(fit))
 }
 
 }
