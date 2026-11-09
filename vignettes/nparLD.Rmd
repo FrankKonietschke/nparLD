@@ -627,7 +627,13 @@ fit.panic <- nparLD(
   B = 999
 )
 
-permTest(fit.panic, table = TRUE)
+permTest(fit.panic)
+```
+
+To illustrate the permutation distribution, we can draw a histogram
+
+```{r permutation-plot, fig.width = 7, fig.height = 5}
+plot(permTest(fit.panic))
 ```
 
 
@@ -689,6 +695,11 @@ the primary or sole object of interest. In contrast, when the scientific
 question concerns specific group, time, or interaction comparisons, contrast
 procedures usually provide the more directly interpretable results.
 
-
-
+## Additional feature: A shiny app
+An interactive Shiny interface is available through `nparLDApp()`. The app
+provides a graphical workflow for importing data, selecting the response,
+subject and factor variables, specifying the hypothesis and optional multiple
+contrast procedures, and inspecting the resulting test statistics, effect
+estimates, plots, and reproducible R code. The analyses performed in the app
+use the same underlying `nparLD()` functionality as the command-line interface.
 

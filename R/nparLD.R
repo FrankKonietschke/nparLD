@@ -61,7 +61,7 @@
 #' @param covariance Logical. If \code{TRUE}, the estimated covariance matrix
 #'   used for the selected hypothesis is included in the output. The default is
 #'   \code{FALSE}.
-#' @param perm.test Logical. Should the paired two-time-point permutation test be
+#' @param perm.test Logical. Should the paired studentized permutation test be
 #'   used when applicable? This option is only available for paired designs with
 #'   two time points.
 #' @param B Number of permutation samples used for the paired permutation test.
@@ -105,8 +105,11 @@
 #' cells.
 
 #' In case of bivariate data (e.g., before and after measurements), the function implements
-#' a studentized permutation test for testing either \code{hypothesis = "H0F"} or 
-#' \code{hypothesis = "H0p"}.
+#' a studentized permutation test for testing either \code{hypothesis = "H0F"} or
+#' \code{hypothesis = "H0p"}. The reported effect estimate is the pairwise
+#' Mann--Whitney effect \eqn{\int F_1,dF_2}, computed directly from the two
+#' marginal distributions and therefore without introducing a common reference
+#' distribution. For more details, see Konietschke and Pauly (2012).
 #'
 #'
 #' @return
@@ -137,14 +140,19 @@
 #'     freedom, and p-values for the tested main effects and interactions.
 #'   \item \code{MCTP}: multiple contrast test results, returned when
 #'     \code{contrast} is specified. These include the selected factor or
-#'     interaction, the simultaneous confidence interval method, the global
-#'     multiple contrast test, local contrast estimates with standard errors,
-#'     simultaneous confidence limits, test statistics, p-values, degrees of
-#'     freedom, and the corresponding contrast matrix.
-#'   \item \code{covariance.info}: estimated covariance matrix used for the
-#'     selected hypothesis, returned when \code{covariance = TRUE}.
-#'   \item \code{perm}: permutation test results, returned when a permutation
-#'     test is requested and applicable.
+#'     interaction, the global multiple contrast test, local contrast estimates
+#'     with standard errors, test statistics, p-values, degrees of freedom, and
+#'     the corresponding contrast matrix. For \code{hypothesis = "H0p"},
+#'     simultaneous confidence limits and the selected SCI method are also
+#'     returned.
+#'   \item \code{covariance.info}: estimated asymptotic covariance matrix of
+#'     \eqn{\sqrt{N}(\hat{\theta} - \theta)} used for the selected hypothesis,
+#'     returned when \code{covariance = TRUE}, where \eqn{N} denotes the number
+#'     of independent subjects.
+#'   \item \code{perm}: Permutation test results, returned when a permutation
+#'   test is requested and applicable. The output contains inference based on
+#'   the \eqn{t_{n-1}} distribution (suffix \code{.t}) and on the studentized
+#'   permutation distribution (suffix \code{.perm}).
 #'   \item \code{hypothesis}: the type of hypothesis tested, either \code{"H0F"}
 #'     for hypotheses in marginal distribution functions or \code{"H0p"} for
 #'     hypotheses in unweighted relative marginal effects.
@@ -157,6 +165,10 @@
 #' contrast specification, and output options.
 #'
 #'
+#' @seealso
+#' \code{\link{WTS}}, \code{\link{ATS}},
+#' \code{\link{MCTP}}, \code{\link{factorInfo}},
+#' \code{\link{covariance}}, \code{\link{permTest}}
 #'
 #' @examples
 #' ## One repeated-measures factor: dental data
@@ -170,6 +182,7 @@
 #' )
 #'
 #' fit_dental
+#' effects(fit_dental)
 #'
 #' ## Crossed factorial longitudinal design: shoulder data
 #' data(shoulder)
@@ -178,11 +191,13 @@
 #' fit_shoulder <- nparLD(
 #'   resp ~ group1 * group2 * time,
 #'   data = shoulder,
-#'   subject = "subject",
+#'   subject = "subject",Factor.Information=TRUE,
 #'   hypothesis = "H0p"
 #' )
 #'
 #' fit_shoulder
+#' effects(fit_shoulder)
+#' factorInfo(fit_shoulder)
 #' }
 #'
 #' ## Multiple contrast procedure for an interaction
@@ -229,6 +244,7 @@
 #' )
 #'
 #' fit_brdu
+#' effects(fit_brdu)
 #'}
 #'
 #' \donttest{
@@ -263,12 +279,15 @@
 #' Konietschke, F., Hothorn, L. A., Brunner, E. (2012). Rank-based multiple test procedures and simultaneous confidence intervals. Electronic Journal of Statistics,
 #' 6, 738-759.
 #' 
+#' Konietschke, F., Pauly, M. (2012). A studentized permutation test for the nonparametric Behrens-Fisher problem in paired data. Electronic Journal of Statistics, 
+#' 6, 1358 - 1372.
+#' 
 #' Rubarth, K., Pauly, M., & Konietschke, F. (2022). Ranking procedures for repeated measures designs with missing data: 
 #' estimation, testing and asymptotic theory. 
 #' Statistical Methods in Medical Research, 31(1), 105-118.
 #'
 #' Rubarth, K., Sattler, P., Zimmermann, H. G., & Konietschke, F. (2021). 
-#' Estimation and testing of Wilcoxon–Mann–Whitney effects in factorial clustered data designs. 
+#' Estimation and testing of Wilcoxon-Mann-Whitney effects in factorial clustered data designs. 
 #' Symmetry, 14(2), 244.
 #' 
 #'
@@ -276,7 +295,7 @@
 #' @export 
 
 nparLD <- function(formula, data, subject, replicate = NULL,
-                    cell.weights = c("subjects", "observations"),
+                   cell.weights = c("subjects", "observations"),
                    effect = c("unweighted", "weighted"),
                    hypothesis = c("H0F", "H0p"),
                    contrast = NULL,
@@ -288,38 +307,71 @@ nparLD <- function(formula, data, subject, replicate = NULL,
                    perm.test = FALSE,
                    B = 1000) {
 
-effect    <- match.arg(effect)
-cell.weights <- match.arg(cell.weights)
-hypothesis   <- match.arg(hypothesis)
-CI.method    <- match.arg(CI.method)
-sci.method   <- match.arg(sci.method)
-if (cell.weights %in% c("nu1", "subjects")) cell.weights <- "subjects"
-if (cell.weights %in% c("nu2", "observations")) cell.weights <- "observations"
+  effect <- match.arg(effect)
+  cell.weights <- match.arg(cell.weights)
+  hypothesis <- match.arg(hypothesis)
+  CI.method <- match.arg(CI.method)
+  sci.method <- match.arg(sci.method)
+
+  if (cell.weights %in% c("nu1", "subjects")) {
+    cell.weights <- "subjects"
+  }
+
+  if (cell.weights %in% c("nu2", "observations")) {
+    cell.weights <- "observations"
+  }
+
 
   #*******************************************************************************
   # Factor Design
   #*******************************************************************************
-  design <- .nparld_build_design(formula, data, subject, replicate)
+
+  design <- .nparld_build_design(
+    formula,
+    data,
+    subject,
+    replicate
+  )
 
   dat <- design$dat
-  formula <- design$formula
-  replicate_internal <- if (!is.null(replicate)) "replicate" else NULL
-
-.nparld_check_complete_within_schedule(
+  identical_cells <- .nparld_find_identical_cells(
   dat,
-  design$SP.names,
-  replicate = replicate_internal
+  design$factor_cols
 )
 
-.check_replicate_structure(
-  dat = dat,
-  WP.names = design$WP.names,
-  SP.names = design$SP.names,
-  replicate = replicate_internal
-)
+if (length(identical_cells) > 0L) {
+  message(
+    "Identical cell response vectors detected:\n",
+    paste0("  ", identical_cells, collapse = "\n")
+  )
+}
+
+  formula <- design$formula
+
+  replicate_internal <- if (!is.null(replicate)) {
+    "replicate"
+  } else {
+    NULL
+  }
+
+  .nparld_check_complete_within_schedule(
+    dat,
+    design$SP.names,
+    replicate = replicate_internal
+  )
+
+  .check_replicate_structure(
+    dat = dat,
+    WP.names = design$WP.names,
+    SP.names = design$SP.names,
+    replicate = replicate_internal
+  )
+
+
   #*******************************************************************************
   # Add Ranks or Pseudo-Ranks to the data set
   #*******************************************************************************
+
   split_obj <- .nparld_split_by_wp_subject_sp(
     dat,
     design$WP.names,
@@ -330,45 +382,63 @@ if (cell.weights %in% c("nu2", "observations")) cell.weights <- "observations"
   Ghat <- NULL
 
   if (effect == "weighted") {
-    dat$Ranks <- rank(dat[[1]], na.last = "keep")
+
+    dat$Ranks <- rank(
+      dat[[1]],
+      na.last = "keep"
+    )
+
     text.ranks <- "Classical ranks (mid-ranks)"
   }
 
   if (effect == "unweighted" || hypothesis == "H0p") {
+
     Fhat <- .nparld_build_Fhat(
       split_obj,
       cell.weights = cell.weights
     )
 
-Ghat <- .nparld_build_Ghat(
-  split_obj = split_obj,
-  Fhat = Fhat,
-  effect = effect,
-  cell.weights = cell.weights
-)
+    Ghat <- .nparld_build_Ghat(
+      split_obj = split_obj,
+      Fhat = Fhat,
+      effect = effect,
+      cell.weights = cell.weights
+    )
 
-  Ntotal <- sum(!is.na(dat[[1]]))
-dat <- .nparld_compute_pseudoranksN(dat, Ghat, Ntotal)
+    Ntotal <- sum(
+      !is.na(dat[[1]])
+    )
+
+    dat <- .nparld_compute_pseudoranksN(
+      dat,
+      Ghat,
+      Ntotal
+    )
+
     text.ranks <- "Pseudo-ranks"
   }
-est <- .nparld_estimate_theta_rankmeans(
-  dat = dat,
-  formula = formula,
-  WP.names = design$WP.names,
-  SP.names = design$SP.names,
-  replicate = replicate_internal,
-  effect = effect,
-  cell.weights = cell.weights
-)
+
+
+  est <- .nparld_estimate_theta_rankmeans(
+    dat = dat,
+    formula = formula,
+    WP.names = design$WP.names,
+    SP.names = design$SP.names,
+    replicate = replicate_internal,
+    effect = effect,
+    cell.weights = cell.weights
+  )
 
   dat <- est$dat
   effects <- est$effects
   theta_hat <- est$theta_hat
   Ntotal <- est$Ntotal
 
+
   #*******************************************************************************
-  # Compute the covariance matrix accordingly
+  # Compute hypothesis matrices
   #*******************************************************************************
+
   hy <- .nparld_build_hypotheses(
     formula,
     design$factor_cols,
@@ -379,122 +449,211 @@ est <- .nparld_estimate_theta_rankmeans(
   Sigma <- NULL
   df_satt <- NULL
 
-if (hypothesis == "H0p") {
+  H <- NULL
+  C <- NULL
 
-  if (effect == "weighted") {
-    stop("Testing H0p with weighted reference distribution is not implemented.",
-         call. = FALSE)
-  }
+
+  #*******************************************************************************
+  # Prepare multiple contrast procedure
+  #*******************************************************************************
 
   if (!is.null(contrast)) {
 
     if (!any(hy$Output.names == contrast[[1]])) {
-      stop("Factor not found in model.", call. = FALSE)
+      stop(
+        "Factor not found in model.",
+        call. = FALSE
+      )
     }
 
-    pos <- which(hy$Output.names == contrast[[1]])
+    pos <- which(
+      hy$Output.names == contrast[[1]]
+    )
 
     if (length(pos) != 1L) {
-      stop("Requested contrast term is ambiguous.", call. = FALSE)
+      stop(
+        "Requested contrast term is ambiguous.",
+        call. = FALSE
+      )
     }
 
     if (length(contrast) == 1L) {
-      ## Use the same hypothesis matrix as WTS/ATS
+
+      ## Default MCTP:
+      ## use the same hypothesis matrix as WTS/ATS
+
       H <- hy$Hypotheses[[pos]]
-      C <- diag(nrow(H))
+
+      C <- diag(
+        nrow(H)
+      )
+
       rownames(C) <- rownames(H)
+
     } else {
-      ## Use marginal-effect matrix and then apply named/user contrast
+
+      ## Named or user-defined contrasts:
+      ## apply contrasts to marginal effects
+
       H <- hy$CI.Matrices[[pos]]
-      C <- .nparld_build_contrast_matrix(contrast, H)
-    }
-
-    CH <- C %*% H
-
-    if (cell.weights == "subjects") {
-      covp <- .nparld_cov_H0p_ref_unweighted_subjects(
-        split_obj,
-        Fhat,
-        C = CH
-      )
-    } else {
-      covp <- .nparld_cov_H0p_ref_unweighted_observations(
-        split_obj,
-        Fhat,
-        C = CH
-      )
-    }
-
-  } else {
-
-    if (cell.weights == "subjects") {
-      covp <- .nparld_cov_H0p_ref_unweighted_subjects(
-        split_obj,
-        Fhat,
-        C = NULL
-      )
-    } else {
-      covp <- .nparld_cov_H0p_ref_unweighted_observations(
-        split_obj,
-        Fhat,
-        C = NULL
+      C <- .nparld_build_contrast_matrix(
+        contrast,
+        H
       )
     }
   }
 
-  Sigma   <- covp$Sigma
-  df_satt <- covp$df_satt
 
-  if (is.null(Sigma)) {
-    stop("Sigma could not be computed.", call. = FALSE)
+  #*******************************************************************************
+  # H0p covariance estimation
+  #*******************************************************************************
+
+  if (hypothesis == "H0p") {
+
+    if (effect == "weighted") {
+      stop(
+        paste(
+          "Testing H0p with weighted reference",
+          "distribution is not implemented."
+        ),
+        call. = FALSE
+      )
+    }
+
+    if (!is.null(contrast)) {
+
+      CH <- C %*% H
+
+      if (cell.weights == "subjects") {
+
+        covp <- .nparld_cov_H0p_ref_unweighted_subjects(
+          split_obj,
+          Fhat,
+          C = CH
+        )
+
+      } else {
+
+        covp <- .nparld_cov_H0p_ref_unweighted_observations(
+          split_obj,
+          Fhat,
+          C = CH
+        )
+      }
+
+    } else {
+
+      if (cell.weights == "subjects") {
+
+        covp <- .nparld_cov_H0p_ref_unweighted_subjects(
+          split_obj,
+          Fhat,
+          C = NULL
+        )
+
+      } else {
+
+        covp <- .nparld_cov_H0p_ref_unweighted_observations(
+          split_obj,
+          Fhat,
+          C = NULL
+        )
+      }
+    }
+
+    Sigma <- covp$Sigma
+    df_satt <- covp$df_satt
+
+    if (is.null(Sigma)) {
+      stop(
+        "Sigma could not be computed.",
+        call. = FALSE
+      )
+    }
+
+
+    #---------------------------------------------------------------------------
+    # Regularize zero/non-finite marginal variances
+    #---------------------------------------------------------------------------
+
+    var_theta <- diag(Sigma)
+
+    eps_effect <- apply(
+      covp$eps_theta,
+      1,
+      function(x) {
+
+        x <- x[
+          is.finite(x)
+        ]
+
+        if (length(x) == 0L) {
+          NA_real_
+        } else {
+          min(x)
+        }
+      }
+    )
+
+    var_theta <- .nparld_regularize_theta_variance(
+      var_theta = var_theta,
+      eps_theta = eps_effect
+    )
+
+    Sigma.reg <- Sigma
+    diag(Sigma.reg) <- var_theta
+
+    effects$Std.Error <- sqrt(
+      diag(Sigma.reg)/design$N
+    )
+
+    effects <- cbind(
+      effects,
+      .nparld_limits(
+        theta_hat,
+        Sigma.reg,
+        alpha,
+        design$N,
+        CI.method
+      )
+    )
+
+    Sigma <- Sigma.reg
+
+    text.hypotheses <-
+      "Tested in marginal Mann-Whitney effects"
   }
 
-  var_theta <- diag(Sigma)
 
-  eps_effect <- apply(covp$eps_theta, 1, function(x) {
-    x <- x[is.finite(x)]
-    if (length(x) == 0L) NA_real_ else min(x)
-  })
+  #*******************************************************************************
+  # H0F covariance estimation
+  #*******************************************************************************
 
-  var_theta <- .nparld_regularize_theta_variance(
-    var_theta = var_theta,
-    eps_theta = eps_effect
-  )
+  if (hypothesis == "H0F") {
 
-  Sigma.reg <- Sigma
-  diag(Sigma.reg) <- var_theta
+    Sigma <- .nparld_estimate_sigma(
+      dat = dat,
+      WP.names = design$WP.names,
+      SP.names = design$SP.names,
+      N = design$N,
+      Ntotal = Ntotal,
+      replicate = replicate,
+      cell.weights = cell.weights
+    )
 
-  effects$std.error <- sqrt(diag(Sigma.reg))
+    effects$Std.Error <- sqrt(
+      diag(Sigma)/design$N
+    )
 
-  effects <- cbind(
-    effects,
-    .nparld_limits(theta_hat, Sigma.reg, alpha, design$N, CI.method)
-  )
+    text.hypotheses <-
+      "Tested in distribution functions"
+  }
 
-  Sigma <- Sigma.reg
-
-  text.hypotheses <- "Tested in marginal Mann-Whitney effects (relative marginal effects)"
-}
-
-if (hypothesis == "H0F") {
-
-  Sigma <- .nparld_estimate_sigma(
-    dat = dat,
-    WP.names = design$WP.names,
-    SP.names = design$SP.names,
-    N = design$N,
-    Ntotal = Ntotal,
-    replicate = replicate,
-    cell.weights = cell.weights
-  )
-
-  effects$std.error <- sqrt(diag(Sigma))
-  text.hypotheses <- "Tested in distribution functions"
-}
 
   #*******************************************************************************
   # Compute the test statistics
   #*******************************************************************************
+
   tests <- .nparld_run_tests(
     theta_hat,
     Sigma,
@@ -503,39 +662,60 @@ if (hypothesis == "H0F") {
     hy$Output.names
   )
 
-if (!is.null(contrast)) {
-  pos <- which(hy$Output.names == contrast[[1]])
 
-  if (length(contrast) == 1L) {
-    H <- hy$Hypotheses[[pos]]
-    C <- diag(nrow(H))
-    rownames(C) <- rownames(H)
-  } else {
-    H <- hy$CI.Matrices[[pos]]
-    C <- .nparld_build_contrast_matrix(contrast, H)
-  }
+  #*******************************************************************************
+  # Multiple contrast procedure
+  #*******************************************************************************
 
-  res.mctp <- .nparld_run_contrasts(
-    theta_hat = theta_hat,
-    Sigma = Sigma,
-    H = H,
-    C = C,
-    N = design$N,
-    alpha = alpha,
-    sci.method = sci.method,
-    hypothesis = hypothesis,
-    df_satt = df_satt,
-    eps_theta = if (hypothesis == "H0p") covp$eps_theta else NULL,
-    factor_name = contrast[[1]]
-  )
+  if (!is.null(contrast)) {
+
+    effect_labels <- .nparld_cell_keys(
+      design$dat,
+      design$WP.names,
+      design$SP.names
+    )
+
+    contrast_type <- if (length(contrast) == 1L) {
+
+  "Default"
+
+} else if (is.character(contrast[[2]])) {
+
+  contrast[[2]]
+
+} else {
+
+  "User-defined"
 }
 
+res.mctp <- .nparld_run_contrasts(
+  theta_hat = theta_hat,
+  Sigma = Sigma,
+  H = H,
+  C = C,
+  N = design$N,
+  alpha = alpha,
+  sci.method = sci.method,
+  hypothesis = hypothesis,
+  df_satt = df_satt,
+  eps_theta = if (hypothesis == "H0p") {
+    covp$eps_theta
+  } else {
+    NULL
+  },
+  factor_name = contrast[[1]],
+  contrast_type = contrast_type,
+  effect_labels = effect_labels
+)
+  }
   #*******************************************************************************
   # Factor information
   #*******************************************************************************
+
   factor.info <- NULL
 
   if (Factor.Information) {
+
     factor.info <- .nparld_run_factor.information(
       theta_hat = theta_hat,
       Sigma = Sigma,
@@ -549,42 +729,61 @@ if (!is.null(contrast)) {
     )
   }
 
+
   #*****************************************************************************
   # Return the Covariance Matrix estimator
   #*****************************************************************************
 
-covariance.info <- NULL
+  covariance.info <- NULL
 
+  if (covariance) {
 
-if (covariance) {
-  covariance.info <- Sigma
-  class(covariance.info) <- c("nparld_covarianceinfo", class(Sigma))
-}
-  
+    covariance.info <- Sigma
+
+    class(covariance.info) <- c(
+      "nparld_covarianceinfo",
+      class(Sigma)
+    )
+  }
+
 
   #*******************************************************************************
   # Two time points
   #*******************************************************************************
-  perm_res <- list(available = FALSE)
+
+  perm_res <- list(
+    available = FALSE
+  )
 
   if (perm.test) {
-    design_obj <- .nparld_build_design(formula, data, subject, replicate)
+
+    design_obj <- .nparld_build_design(
+      formula,
+      data,
+      subject,
+      replicate
+    )
 
     if (.can_use_perm_test(design_obj)) {
-      samp <- .extract_paired_samples(design_obj)
+
+      samp <- .extract_paired_samples(
+        design_obj
+      )
 
       res_perm_raw <- studentized_perm_test_paired(
-        samp$x, samp$y,
+        samp$x,
+        samp$y,
         B = B,
         alpha = alpha,
         hypothesis = hypothesis
       )
 
-      table_out <- .format_perm_output(
-        res = res_perm_raw,
-        alpha = alpha,
-        hypothesis = hypothesis
-      )
+  table_out <- .format_perm_output(
+  res = res_perm_raw,
+  alpha = alpha,
+  hypothesis = hypothesis,
+  factor_name = samp$factor
+)
 
       perm_res <- list(
         available = TRUE,
@@ -595,22 +794,29 @@ if (covariance) {
       )
 
     } else {
+
       perm_res <- list(
         available = FALSE,
-        message = "Permutation test not applicable (requires 1 subplot factor with 2 levels and complete data)."
+        message = paste(
+          "Permutation test not applicable",
+          "(requires 1 subplot factor with 2 levels",
+          "and complete data)."
+        )
       )
     }
   }
 
+
   #*******************************************************************************
   # Final result object
   #*******************************************************************************
+
   result <- list(
     Design = design$Design,
     wholeplots = design$wholeplots,
     subplots = design$subplots,
-     text.ranks = text.ranks,
-      text.hypotheses = text.hypotheses,
+    text.ranks = text.ranks,
+    text.hypotheses = text.hypotheses,
     N.info = design$N.info,
     effects = effects,
     factor.info = factor.info,
@@ -621,6 +827,7 @@ if (covariance) {
     hypothesis = hypothesis,
     CI.method = CI.method,
     covariance.info = covariance.info,
+
     .internal = list(
       formula = formula,
       WP.names = design$WP.names,
@@ -644,6 +851,6 @@ if (covariance) {
   )
 
   class(result) <- "nparld_fit"
+
   result
 }
-

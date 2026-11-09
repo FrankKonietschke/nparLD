@@ -5,7 +5,7 @@
 #' @param object An object of class \code{"nparld_fit"}.
 #' @param ... Further arguments.
 #'
-#' @return A matrix or data frame containing Wald-type test statistics.
+#' @return A data frame containing Wald-type test statistics.
 #' @export
 WTS <- function(object, ...) {
   UseMethod("WTS")
@@ -26,7 +26,7 @@ WTS.nparld_fit <- function(object, ...) {
 #' @param object An object of class \code{"nparld_fit"}.
 #' @param ... Further arguments.
 #'
-#' @return A matrix or data frame containing ANOVA-type test statistics.
+#' @return A data frame containing ANOVA-type test statistics.
 #' @export
 ATS <- function(object, ...) {
   UseMethod("ATS")
@@ -99,26 +99,71 @@ factorInfo.nparld_fit <- function(object, ...) {
 #' @importFrom stats effects
 #' @export
 effects.nparld_fit <- function(object, ...) {
-  object$effects
+
+  out <- as.data.frame(object$effects)
+
+  class(out) <- c(
+    "nparld_effects",
+    class(out)
+  )
+
+  out
 }
+
+#' @export
+print.nparld_effects <- function(x, digits = 4, ...) {
+
+  tab <- as.data.frame(x)
+
+  num_cols <- vapply(
+    tab,
+    is.numeric,
+    logical(1)
+  )
+
+  tab[num_cols] <- lapply(
+    tab[num_cols],
+    round,
+    digits = digits
+  )
+
+  print(
+    tab,
+    quote = FALSE,
+    ...
+  )
+
+  invisible(x)
+}
+
 
 #' Extract covariance matrix
 #'
-#' Extracts the estimated covariance matrix of the relative effect estimator
-#' from a fitted nparLD model.
+#' Extracts the estimated asymptotic covariance matrix of
+#' \eqn{\sqrt{N}(\hat{\theta} - \theta)} from a fitted nparLD model.
+#'
+#' @details
+#' The returned matrix estimates the covariance matrix on the
+#' \eqn{\sqrt{N}} asymptotic scale. Consequently, the covariance
+#' matrix of \eqn{\hat{\theta}} itself is obtained approximately as
+#' \code{covariance(object) / N}, where \code{N} is the number of
+#' independent subjects.
 #'
 #' @param object An object of class \code{"nparld_fit"}.
 #' @param ... Further arguments.
 #'
-#' @return A covariance matrix.
+#' @return The estimated asymptotic covariance matrix of
+#' \eqn{\sqrt{N}(\hat{\theta} - \theta)}.
+#'
 #' @export
 covariance <- function(object, ...) {
   UseMethod("covariance")
 }
 
+#' @rdname covariance
 #' @export
 covariance.nparld_fit <- function(object, ...) {
-  if (is.null(object$covariance)) {
+  if (is.null(object$covariance.info)) {
     stop(
       "No covariance matrix is available. ",
       "Refit with covariance = TRUE.",
@@ -126,8 +171,10 @@ covariance.nparld_fit <- function(object, ...) {
     )
   }
 
-  object$covariance
+  object$covariance.info
 }
+
+
 
 #' Extract contrast matrix
 #'
@@ -159,43 +206,41 @@ contrastMatrix.nparld_fit <- function(object, ...) {
 #' @param object An object of class \code{"nparld_fit"}.
 #' @param ... Further arguments passed to methods.
 #'
-#' @return A permutation test object.
+#' @return An object of class \code{"nparld_permtest"} containing:
+#' \describe{
+#'   \item{\code{available}}{Logical indicating whether the permutation test was available.}
+#'   \item{\code{method}}{Character string describing the permutation procedure.}
+#'   \item{\code{table}}{A compact table with the effect estimate, standard error,
+#'   test statistic, and p-values; for \code{H0p}, confidence intervals are also included.}
+#'   \item{\code{raw}}{The underlying unformatted permutation-test results, including
+#'   the permutation distribution.}
+#'   \item{\code{levels}}{The two levels of the repeated-measures factor used in the test.}
+#' }
+#'
 #' @export
 permTest <- function(object, ...) {
   UseMethod("permTest")
 }
 
-#' @param table Logical. If \code{TRUE}, return only the permutation test table.
 #' @rdname permTest
 #' @export
-permTest.nparld_fit <- function(object, table = FALSE, ...) {
+permTest.nparld_fit <- function(object, ...) {
   if (is.null(object$perm) || !isTRUE(object$perm$available)) {
     stop("No permutation test results are available.", call. = FALSE)
   }
-
-if (isTRUE(table)) {
-  out <- as.data.frame(object$perm$table)
-  class(out) <- c("nparld_test_table", class(out))
-  return(out)
-}
 
   out <- object$perm
   class(out) <- c("nparld_permtest", class(out))
   out
 }
 
-
 #' @export
 print.nparld_permtest <- function(x, digits = 4, ...) {
-  cat("\nPermutation test\n")
-  cat("-------------------------------------------------\n")
-
-  if (!is.null(x$method)) {
-    cat("Method: ", x$method, "\n", sep = "")
-  }
-
   if (!is.null(x$table)) {
-    .nparld_print_table(x$table, digits = digits)
+    .nparld_print_table(
+      x$table,
+      digits = digits
+    )
   }
 
   invisible(x)

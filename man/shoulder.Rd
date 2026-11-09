@@ -19,7 +19,7 @@ shoulder
 }
 \description{
 Shoulder pain scores from patients after laparoscopic abdominal surgery. The
-study includes treatment group, gender group, and repeated pain measurements.
+study includes treatment group (group1), gender group (group2), and repeated pain measurements.
 }
 \examples{
 data(shoulder)

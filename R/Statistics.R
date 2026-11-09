@@ -19,7 +19,7 @@
   upper <- .nparld_expit(.nparld_logit(p)+ qnorm(1-alpha/2)/sqrt(N)*sqrt(c(diag(VLogit))))}
   )
 
-  res=cbind(lower=lower,upper=upper)
+  res=cbind(Lower=lower,Upper=upper)
   res
 }
 
@@ -38,7 +38,7 @@
   WTS <- N * t(H %*% M) %*% MASS::ginv(H %*% V %*% t(H)) %*% H %*% M
   dfWTS <- .nparld_rankH(H %*% V %*% t(H))
   pv.WTS <- 1 - pchisq(WTS, dfWTS)
-  c(Statistic = as.numeric(WTS), df = as.numeric(dfWTS), `p-value` = as.numeric(pv.WTS))
+  c(Statistic = as.numeric(WTS), df = as.numeric(dfWTS), p.value = as.numeric(pv.WTS))
 }
 
 .nparld_ats <- function(M, H, V, N) {
@@ -50,7 +50,7 @@
   ATS <- N / spur * t(M) %*% C %*% M
   df_ATS1 <- spur^2 / sum(diag(C %*% V %*% C %*% V))
   pv.ATS <- 1 - pf(ATS, df_ATS1, 1e10)
-  c(Statistic = as.numeric(ATS), df = as.numeric(df_ATS1), `p-value` = as.numeric(pv.ATS))
+  c(Statistic = as.numeric(ATS), df = as.numeric(df_ATS1), p.value = as.numeric(pv.ATS))
 }
 
 .nparld_run_tests <- function(theta_hat, Sigma, Hypotheses, N, output_names) {
@@ -66,14 +66,37 @@
 
   rownames(WTS) <- output_names
   rownames(ATS) <- output_names
-  colnames(WTS) <- colnames(ATS) <- c("Statistic", "df", "p-value")
+  colnames(WTS) <- colnames(ATS) <- c("Statistic", "df", "p.value")
 
   list(WTS = WTS, ATS = ATS)
 }
 
 
 
+.nparld_interaction_labels <- function(factors, names.levels) {
 
+  levs <- names.levels[factors]
+
+  grd <- do.call(
+    expand.grid,
+    c(
+      rev(levs),
+      list(
+        KEEP.OUT.ATTRS = FALSE,
+        stringsAsFactors = FALSE
+      )
+    )
+  )
+
+  grd <- grd[, rev(seq_along(factors)), drop = FALSE]
+
+  apply(
+    grd,
+    1L,
+    paste,
+    collapse = ":"
+  )
+}
 
 .nparld_run_factor.information <- function(theta_hat,
                                            Sigma,
@@ -96,10 +119,10 @@
     # covariance of estimates
     V <- CIMatrices[[i]] %*% Sigma %*% t(CIMatrices[[i]])
 
-    se <- sqrt(diag(V))
+    se <- sqrt(diag(V))/ sqrt(N)
 
     df <- data.frame(
-      Rel.Effect = est,
+      RTE = est,
       Std.Error  = se
     )
 
@@ -125,21 +148,21 @@
 
       if (!is.null(names.levels[[fac_name]])) {
         rn <- names.levels[[fac_name]]
-      } else if (grepl(":", fac_name, fixed = TRUE)) {
-        facs <- strsplit(fac_name, ":", fixed = TRUE)[[1]]
+} else if (grepl(":", fac_name, fixed = TRUE)) {
 
-        if (all(facs %in% names(names.levels))) {
-          levs <- names.levels[facs]
-          rn <- do.call(
-            interaction,
-            c(
-              expand.grid(levs, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE),
-              list(sep = ":")
-            )
-          )
-          rn <- as.character(rn)
-        }
-      }
+  facs <- strsplit(
+    fac_name,
+    ":",
+    fixed = TRUE
+  )[[1]]
+
+  if (all(facs %in% names(names.levels))) {
+    rn <- .nparld_interaction_labels(
+      facs,
+      names.levels
+    )
+  }
+}
     }
 
     if (!is.null(rn) && length(rn) == nrow(df)) {
@@ -1726,80 +1749,117 @@ list(
 #*******************************************************************************
 # Multiple Contrast Tests
 #*******************************************************************************
+
+
 .nparld_build_contrast_matrix <- function(contrast, H) {
-
-  k <- nrow(H)
-
-  if (!is.numeric(k) || length(k) != 1L || k < 2L) {
-    stop("At least two marginal levels are required for contrasts.",
-         call. = FALSE)
-  }
 
   if (length(contrast) != 2L) {
     stop(
-      "Named or user-defined contrasts require a second contrast argument.",
+      "Named or user-defined contrasts require a two-element contrast specification.",
       call. = FALSE
     )
   }
 
-  if (is.character(contrast[[2]])) {
+  k <- nrow(H)
+  specification <- contrast[[2L]]
 
-    if (!requireNamespace("multcomp", quietly = TRUE)) {
-      stop("Package 'multcomp' required for built-in contrasts.",
-           call. = FALSE)
-    }
+  ## Named contrast family
+## Named contrast family
+if (is.character(specification)) {
 
-    CC <- multcomp::contrMat(rep(1, k), type = contrast[[2]])
+  level_names <- rownames(H)
+
+  if (is.null(level_names) ||
+      length(level_names) != k ||
+      any(!nzchar(level_names))) {
+
+    level_names <- as.character(seq_len(k))
   }
 
-  if (is.matrix(contrast[[2]])) {
+  n_contrast <- stats::setNames(
+    rep(1, k),
+    level_names
+  )
 
-    CC <- contrast[[2]]
+  C <- multcomp::contrMat(
+    n = n_contrast,
+    type = specification
+  )
 
-    if (ncol(CC) != k) {
+  C <- as.matrix(C)
+
+  colnames(C) <- level_names
+rownames(C) <- paste0(
+  "C",
+  seq_len(nrow(C))
+)
+
+  return(C)
+}
+
+  ## User-defined contrast
+  if (is.numeric(specification)) {
+
+    if (is.null(dim(specification))) {
+
+      C <- matrix(
+        specification,
+        nrow = 1L
+      )
+
+    } else {
+
+      C <- as.matrix(specification)
+    }
+
+    if (ncol(C) != k) {
       stop(
-        "Contrast matrix must have one column for each marginal level of the selected term. ",
-        "Expected ", k, " columns, but got ", ncol(CC), ".",
+        paste0(
+          "User-defined contrast matrix must have one column for each ",
+          "marginal level of the selected term. Expected ",
+          k,
+          " columns, but got ",
+          ncol(C),
+          "."
+        ),
         call. = FALSE
       )
     }
 
-    if (is.null(rownames(CC))) {
-      rownames(CC) <- paste("C", seq_len(nrow(CC)))
-    }
+    ## Normalize each contrast row:
+    ## positive coefficients sum to +1,
+    ## negative coefficients sum to -1.
+    C <- .nparld_normalize_contrasts(C)
+
+rownames(C) <- paste0(
+  "C",
+  seq_len(nrow(C))
+)
+
+    return(C)
   }
 
-  if (is.numeric(contrast[[2]]) && !is.matrix(contrast[[2]])) {
-
-    if (length(contrast[[2]]) != k) {
-      stop(
-        "Contrast length does not match the number of marginal levels of the selected term. ",
-        "Expected ", k, " entries, but got ", length(contrast[[2]]), ".",
-        call. = FALSE
-      )
-    }
-
-    CC <- matrix(contrast[[2]], nrow = 1)
-    rownames(CC) <- "Custom"
-  }
-
-  if (!exists("CC", inherits = FALSE)) {
-    stop("Invalid contrast specification.", call. = FALSE)
-  }
-
-  rs <- rowSums(CC)
-  rows <- which(abs(rs) > sqrt(.Machine$double.eps))
-
-  if (length(rows) > 0L) {
-    CC[rows, ] <- CC[rows, , drop = FALSE] -
-      rowMeans(CC[rows, , drop = FALSE])
-  }
-
-  CC
+  stop(
+    paste0(
+      "The second element of 'contrast' must be either ",
+      "a supported contrast type or a numeric vector/matrix."
+    ),
+    call. = FALSE
+  )
 }
 
 .nparld_regularize_contrast_cov <- function(Vuse, Cfull, eps_theta) {
   vars <- diag(Vuse)
+
+if (any(!is.finite(vars)) || any(vars <= 0)) {
+  stop(
+    paste(
+      "The covariance matrix of the selected contrasts",
+      "contains non-positive or non-finite variances."
+    ),
+    call. = FALSE
+  )
+}
 
   eps_contrast <- apply(Cfull, 1, function(cc) {
     involved <- which(abs(cc) > 0)
@@ -1835,7 +1895,6 @@ list(
 
   if (!requireNamespace("mvtnorm", quietly = TRUE))
     stop("Package 'mvtnorm' required.")
-  eps_theta = NULL
   sci.method <- match.arg(sci.method)
 
   pd.main <- H %*% theta_hat
@@ -1843,10 +1902,7 @@ list(
 
   CH.pd <- as.vector(C %*% pd.main)
   CH.V  <- C %*% V.main %*% t(C)
-
-
-
-Cfull <- C %*% H
+  Cfull <- C %*% H
 
 if (!is.null(eps_theta)) {
   CH.V <- .nparld_regularize_contrast_cov(
@@ -1865,10 +1921,10 @@ if (!is.null(eps_theta)) {
   if (hypothesis == "H0F") {
 
     Est <- CH.pd
-    Vuse <- CH.V
-    SE <- sqrt(diag(Vuse))
-    Tvec <- Est / (SE / sqrt(N))
-    R <- cov2cor(Vuse)
+   Vuse <- CH.V
+   SE <- sqrt(diag(Vuse)) / sqrt(N)
+  Tvec <- Est / SE
+   R <- cov2cor(Vuse)
 
     pv <- sapply(seq_along(Tvec), function(i) {
       1 - mvtnorm::pmvt(
@@ -1876,7 +1932,8 @@ if (!is.null(eps_theta)) {
         upper =  abs(Tvec[i]),
         corr = R,
         delta = rep(0, nrow(R)),
-        df = df
+        df = df,
+        seed = 12345
       )[1]
     })
 
@@ -1885,7 +1942,8 @@ if (!is.null(eps_theta)) {
       delta = rep(0, nrow(R)),
       corr = R,
       tail = "both",
-      df = df
+      df = df,
+      seed = 12345
     )$quantile
 
     res <- data.frame(
@@ -1901,11 +1959,13 @@ if (!is.null(eps_theta)) {
       Local.Results   = res,
       Global.Result   = data.frame(
         Statistic = max(abs(Tvec)),
+        Quantile = crit,
         p.value   = min(pv)
       ),
       DF = df,
       Quantile = crit,
-      sci.method = NA_character_
+      sci.method = NA_character_,
+      alpha = alpha
     ))
   }
 
@@ -1917,17 +1977,17 @@ if (!is.null(eps_theta)) {
 
     Est <- CH.pd
     Vuse <- CH.V
-    SE <- sqrt(diag(Vuse))
-    Tvec <- Est / (SE / sqrt(N))
+    SE <- sqrt(diag(Vuse))/sqrt(N)
+    Tvec <- Est / (SE)
     R <- cov2cor(Vuse)
-
     pv <- sapply(seq_along(Tvec), function(i) {
       1 - mvtnorm::pmvt(
         lower = -abs(Tvec[i]),
         upper =  abs(Tvec[i]),
         corr = R,
         delta = rep(0, nrow(R)),
-        df = df
+        df = df,
+        seed = 12345
       )[1]
     })
 
@@ -1936,17 +1996,18 @@ if (!is.null(eps_theta)) {
       delta = rep(0, nrow(R)),
       corr = R,
       tail = "both",
-      df = df
+      df = df,
+      seed = 12345
     )$quantile
 
-    lower <- Est - crit * SE / sqrt(N)
-    upper <- Est + crit * SE / sqrt(N)
+    lower <- Est - crit * SE 
+    upper <- Est + crit * SE 
 
     res <- data.frame(
       Estimate  = Est,
       Std.Error = SE,
-      lower     = lower,
-      upper     = upper,
+      Lower     = lower,
+      Upper     = upper,
       Statistic = Tvec,
       p.value   = pv,
       df        = df
@@ -1957,23 +2018,38 @@ if (!is.null(eps_theta)) {
       Local.Results   = res,
       Global.Result   = data.frame(
         Statistic = max(abs(Tvec)),
+        Quantile = crit,
         p.value   = min(pv)
       ),
       DF = df,
       Quantile = crit,
-      sci.method = sci.method
+      sci.method = sci.method,
+      alpha = alpha
     ))
   }
 
   # ------------------------------------------------------------------
   # H0p + Fisher transformation + delta method
   # ------------------------------------------------------------------
+if (any(!is.finite(CH.pd))) {
+  stop(
+    "Non-finite contrast estimates occurred in the multiple contrast procedure.",
+    call. = FALSE
+  )
+}
 
-  eps <- 1e-10
-  if (any(abs(CH.pd) >= 1 - eps)) {
-    stop("Fisher transformation requires all contrast estimates to lie strictly between -1 and 1.",
-         call. = FALSE)
-  }
+eps <- 1e-10
+
+if (any(abs(CH.pd) >= 1 - eps)) {
+  stop(
+    paste(
+      "Fisher transformation requires all contrast estimates",
+      "to lie strictly between -1 and 1."
+    ),
+    call. = FALSE
+  )
+}
+
 
   g <- function(x) 0.5 * log((1 + x) / (1 - x))
   ginv <- function(y) tanh(y)
@@ -1981,6 +2057,9 @@ if (!is.null(eps_theta)) {
 
   Est.raw <- CH.pd
   Est <- g(Est.raw)
+
+  ## Classical standard error on the original contrast scale
+  SE.raw <- sqrt(diag(CH.V)) / sqrt(N)
 
   D <- diag(gp(Est.raw), nrow = length(Est.raw), ncol = length(Est.raw))
   Vuse <- D %*% CH.V %*% D
@@ -1995,7 +2074,8 @@ if (!is.null(eps_theta)) {
       upper =  abs(Tvec[i]),
       corr = R,
       delta = rep(0, nrow(R)),
-      df = df
+      df = df,
+      seed = 12345
     )[1]
   })
 
@@ -2004,7 +2084,8 @@ if (!is.null(eps_theta)) {
     delta = rep(0, nrow(R)),
     corr = R,
     tail = "both",
-    df = df
+    df = df,
+    seed = 12345
   )$quantile
 
   lower.z <- Est - crit * SE / sqrt(N)
@@ -2015,9 +2096,9 @@ if (!is.null(eps_theta)) {
 
   res <- data.frame(
     Estimate  = Est.raw,
-    Std.Error = SE,
-    lower     = lower,
-    upper     = upper,
+    Std.Error = SE.raw,
+    Lower     = lower,
+    Upper     = upper,
     Statistic = Tvec,
     p.value   = pv,
     df        = df
@@ -2028,25 +2109,112 @@ if (!is.null(eps_theta)) {
     Local.Results   = res,
     Global.Result   = data.frame(
       Statistic = max(abs(Tvec)),
+      Quantile = crit,
       p.value   = min(pv)
     ),
     DF = df,
     Quantile = crit,
-    sci.method = sci.method
+    sci.method = sci.method,
+    alpha = alpha
   )
 }
 
-.nparld_run_contrasts <- function(theta_hat,
-                                  Sigma,
-                                  H,
-                                  C,
-                                  N,
-                                  alpha,
+.nparld_normalize_contrasts <- function(C, tol = 1e-12) {
+
+  C <- as.matrix(C)
+  storage.mode(C) <- "double"
+
+  if (nrow(C) < 1L || ncol(C) < 1L) {
+    stop(
+      "The user-defined contrast matrix must not be empty.",
+      call. = FALSE
+    )
+  }
+
+  if (any(!is.finite(C))) {
+    stop(
+      "User-defined contrasts must contain only finite numeric coefficients.",
+      call. = FALSE
+    )
+  }
+
+  for (i in seq_len(nrow(C))) {
+
+    z <- C[i, ]
+
+    pos <- z > 0
+    neg <- z < 0
+
+    if (!any(pos) || !any(neg)) {
+      stop(
+        paste0(
+          "User-defined contrast ",
+          i,
+          " must contain at least one positive and ",
+          "one negative coefficient."
+        ),
+        call. = FALSE
+      )
+    }
+
+    pos_sum <- sum(z[pos])
+    neg_sum <- sum(abs(z[neg]))
+
+    ## Positive coefficients sum to +1
+    z[pos] <- z[pos] / pos_sum
+
+    ## Negative coefficients sum to -1
+    z[neg] <- z[neg] / neg_sum
+
+    ## Guard against numerical noise
+    z[abs(z) < tol] <- 0
+
+    C[i, ] <- z
+  }
+
+  ## Verify normalization
+  pos_sums <- apply(
+    C,
+    1L,
+    function(z) sum(z[z > 0])
+  )
+
+  neg_sums <- apply(
+    C,
+    1L,
+    function(z) sum(z[z < 0])
+  )
+
+  if (any(abs(pos_sums - 1) > sqrt(.Machine$double.eps)) ||
+      any(abs(neg_sums + 1) > sqrt(.Machine$double.eps))) {
+
+    stop(
+      "Internal error while normalizing user-defined contrasts.",
+      call. = FALSE
+    )
+  }
+
+  ## This should follow automatically from the normalization,
+  ## but check explicitly because the Fisher transformation
+  ## requires bounded contrasts.
+  if (any(C < -1 - tol | C > 1 + tol)) {
+    stop(
+      "Normalized contrast coefficients must lie in [-1, 1].",
+      call. = FALSE
+    )
+  }
+
+  C
+}
+
+.nparld_run_contrasts <- function(theta_hat, Sigma, H, C, N, alpha,
                                   sci.method,
                                   hypothesis,
                                   df_satt = NULL,
                                   eps_theta = NULL,
-                                  factor_name = NULL) {
+                                  factor_name = NULL,
+                                  contrast_type = NULL,
+                                  effect_labels = NULL) {
 
   res <- .nparld_MCTP(
     theta_hat = theta_hat,
@@ -2059,25 +2227,36 @@ if (!is.null(eps_theta)) {
     hypothesis = hypothesis,
     df_satt = df_satt,
     eps_theta = eps_theta
-  )
+    )
 
-  # build readable contrast labels
   contrast_labels <- rownames(C)
-
-  if (is.null(contrast_labels)) {
-    contrast_labels <- paste("C", seq_len(nrow(C)))
-  }
+if (is.null(contrast_labels)) {
+  contrast_labels <- paste0(
+    "C",
+    seq_len(nrow(C))
+  )
+}
 
   rownames(res$Local.Results) <- contrast_labels
   rownames(res$Contrast.Matrix) <- contrast_labels
 
-  if (!is.null(names(theta_hat)) &&
-      length(names(theta_hat)) == ncol(res$Contrast.Matrix)) {
+  if (!is.null(effect_labels) &&
+      length(effect_labels) == ncol(res$Contrast.Matrix)) {
+
+    colnames(res$Contrast.Matrix) <- effect_labels
+
+  } else if (!is.null(names(theta_hat)) &&
+             length(names(theta_hat)) == ncol(res$Contrast.Matrix)) {
+
     colnames(res$Contrast.Matrix) <- names(theta_hat)
   }
 
   if (!is.null(factor_name)) {
     res$Factor <- factor_name
+  }
+
+  if (!is.null(contrast_type)) {
+    res$Contrast.Type <- contrast_type
   }
 
   class(res) <- "nparld_mctp"

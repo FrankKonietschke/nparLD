@@ -21,25 +21,29 @@
 }
 
 .extract_paired_samples <- function(design_obj) {
-  
+
   dat <- design_obj$dat
   response <- all.vars(design_obj$formula)[1]
   sp <- design_obj$SP.names
-  
+
   lev <- design_obj$names.levels[[sp]]
-  
-  # reshape into wide format (safe because design is balanced)
+
   wide <- reshape(
     dat,
     idvar = "subject",
     timevar = sp,
     direction = "wide"
   )
-  
+
   x <- wide[[paste0(response, ".", lev[1])]]
   y <- wide[[paste0(response, ".", lev[2])]]
-  
-  list(x = x, y = y, lev = lev)
+
+  list(
+    x = x,
+    y = y,
+    lev = lev,
+    factor = sp
+  )
 }
 
 studentized_perm_test_paired <- function(
@@ -157,10 +161,15 @@ list(
 }
 
 
-.format_perm_output <- function(res, alpha = 0.05, hypothesis = "H0p") {
-  
+.format_perm_output <- function(
+  res,
+  alpha = 0.05,
+  hypothesis = "H0p",
+  factor_name = NULL
+) {
+
   if (hypothesis == "H0F") {
-    
+
     out <- data.frame(
       Estimate = res$estimate,
       Std.Error = res$se,
@@ -168,11 +177,9 @@ list(
       p.t = res$p.value.t,
       p.perm = res$p.value
     )
-    
-    rownames(out) <- "Rank-based test"
-    
+
   } else {
-    
+
     out <- data.frame(
       Estimate = res$estimate,
       Std.Error = res$se,
@@ -184,11 +191,12 @@ list(
       p.t = res$p.value.t,
       p.perm = res$p.value
     )
-    
-    rownames(out) <- paste0("p (CI ", 100*(1-alpha), "%)")
   }
-  
+
+  if (!is.null(factor_name)) {
+    rownames(out) <- factor_name
+  }
+
   out
 }
-
 

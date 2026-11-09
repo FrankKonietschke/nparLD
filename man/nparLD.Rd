@@ -91,7 +91,7 @@ default is \code{alpha = 0.05}.}
 used for the selected hypothesis is included in the output. The default is
 \code{FALSE}.}
 
-\item{perm.test}{Logical. Should the paired two-time-point permutation test be
+\item{perm.test}{Logical. Should the paired studentized permutation test be
 used when applicable? This option is only available for paired designs with
 two time points.}
 
@@ -125,14 +125,19 @@ p-values for the tested main effects and interactions.
 freedom, and p-values for the tested main effects and interactions.
 \item \code{MCTP}: multiple contrast test results, returned when
 \code{contrast} is specified. These include the selected factor or
-interaction, the simultaneous confidence interval method, the global
-multiple contrast test, local contrast estimates with standard errors,
-simultaneous confidence limits, test statistics, p-values, degrees of
-freedom, and the corresponding contrast matrix.
-\item \code{covariance.info}: estimated covariance matrix used for the
-selected hypothesis, returned when \code{covariance = TRUE}.
-\item \code{perm}: permutation test results, returned when a permutation
-test is requested and applicable.
+interaction, the global multiple contrast test, local contrast estimates
+with standard errors, test statistics, p-values, degrees of freedom, and
+the corresponding contrast matrix. For \code{hypothesis = "H0p"},
+simultaneous confidence limits and the selected SCI method are also
+returned.
+\item \code{covariance.info}: estimated asymptotic covariance matrix of
+\eqn{\sqrt{N}(\hat{\theta} - \theta)} used for the selected hypothesis,
+returned when \code{covariance = TRUE}, where \eqn{N} denotes the number
+of independent subjects.
+\item \code{perm}: Permutation test results, returned when a permutation
+test is requested and applicable. The output contains inference based on
+the \eqn{t_{n-1}} distribution (suffix \code{.t}) and on the studentized
+permutation distribution (suffix \code{.perm}).
 \item \code{hypothesis}: the type of hypothesis tested, either \code{"H0F"}
 for hypotheses in marginal distribution functions or \code{"H0p"} for
 hypotheses in unweighted relative marginal effects.
@@ -190,7 +195,10 @@ handled by averaging rank or pseudo-rank scores within subject-condition
 cells.
 In case of bivariate data (e.g., before and after measurements), the function implements
 a studentized permutation test for testing either \code{hypothesis = "H0F"} or
-\code{hypothesis = "H0p"}.
+\code{hypothesis = "H0p"}. The reported effect estimate is the pairwise
+Mann--Whitney effect \eqn{\int F_1,dF_2}, computed directly from the two
+marginal distributions and therefore without introducing a common reference
+distribution. For more details, see Konietschke and Pauly (2012).
 }
 \examples{
 ## One repeated-measures factor: dental data
@@ -204,6 +212,7 @@ fit_dental <- nparLD(
 )
 
 fit_dental
+effects(fit_dental)
 
 ## Crossed factorial longitudinal design: shoulder data
 data(shoulder)
@@ -212,11 +221,13 @@ data(shoulder)
 fit_shoulder <- nparLD(
   resp ~ group1 * group2 * time,
   data = shoulder,
-  subject = "subject",
+  subject = "subject",Factor.Information=TRUE,
   hypothesis = "H0p"
 )
 
 fit_shoulder
+effects(fit_shoulder)
+factorInfo(fit_shoulder)
 }
 
 ## Multiple contrast procedure for an interaction
@@ -263,6 +274,7 @@ fit_brdu <- nparLD(
 )
 
 fit_brdu
+effects(fit_brdu)
 }
 
 \donttest{
@@ -297,11 +309,19 @@ Computational Statistics & Data Analysis, 54(8), 1895-1905.
 Konietschke, F., Hothorn, L. A., Brunner, E. (2012). Rank-based multiple test procedures and simultaneous confidence intervals. Electronic Journal of Statistics,
 6, 738-759.
 
+Konietschke, F., Pauly, M. (2012). A studentized permutation test for the nonparametric Behrens-Fisher problem in paired data. Electronic Journal of Statistics,
+6, 1358 - 1372.
+
 Rubarth, K., Pauly, M., & Konietschke, F. (2022). Ranking procedures for repeated measures designs with missing data:
 estimation, testing and asymptotic theory.
 Statistical Methods in Medical Research, 31(1), 105-118.
 
 Rubarth, K., Sattler, P., Zimmermann, H. G., & Konietschke, F. (2021).
-Estimation and testing of Wilcoxon–Mann–Whitney effects in factorial clustered data designs.
+Estimation and testing of Wilcoxon-Mann-Whitney effects in factorial clustered data designs.
 Symmetry, 14(2), 244.
+}
+\seealso{
+\code{\link{WTS}}, \code{\link{ATS}},
+\code{\link{MCTP}}, \code{\link{factorInfo}},
+\code{\link{covariance}}, \code{\link{permTest}}
 }

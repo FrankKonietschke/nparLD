@@ -4,6 +4,62 @@
 # Helpers: design + ordering
 #*******************************************************************************
 
+.nparld_find_identical_cells <- function(dat, factor_cols) {
+
+  if (length(factor_cols) == 0L) {
+    return(character(0))
+  }
+
+  cell_id <- interaction(
+    dat[, factor_cols, drop = FALSE],
+    drop = TRUE,
+    lex.order = TRUE
+  )
+
+  cells <- split(dat, cell_id)
+
+  cell_vectors <- lapply(
+    cells,
+    function(x) {
+
+      x <- x[order(x$subject), , drop = FALSE]
+
+      keep <- !is.na(x[[1]])
+
+      setNames(
+        x[[1]][keep],
+        x$subject[keep]
+      )
+    }
+  )
+
+  nm <- names(cell_vectors)
+
+  if (length(nm) < 2L) {
+    return(character(0))
+  }
+
+  out <- utils::combn(
+    nm,
+    2L,
+    FUN = function(z) {
+
+      x <- cell_vectors[[z[1L]]]
+      y <- cell_vectors[[z[2L]]]
+
+      if (
+        identical(names(x), names(y)) &&
+        identical(unname(x), unname(y))
+      ) {
+        paste(z, collapse = " == ")
+      } else {
+        NA_character_
+      }
+    }
+  )
+
+  out[!is.na(out)]
+}
 
 .nparld_build_design <- function(formula, data, subject, replicate = NULL) {
 

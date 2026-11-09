@@ -1,0 +1,1440 @@
+
+R version 4.5.1 (2025-06-13 ucrt) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> pkgname <- "nparLD"
+> source(file.path(R.home("share"), "R", "examples-header.R"))
+> options(warn = 1)
+> options(pager = "console")
+> base::assign(".ExTimings", "nparLD-Ex.timings", pos = 'CheckExEnv')
+> base::cat("name\tuser\tsystem\telapsed\n", file=base::get(".ExTimings", pos = 'CheckExEnv'))
+> base::assign(".format_ptime",
++ function(x) {
++   if(!is.na(x[4L])) x[1L] <- x[1L] + x[4L]
++   if(!is.na(x[5L])) x[2L] <- x[2L] + x[5L]
++   options(OutDec = '.')
++   format(x[1L:3L], digits = 7L)
++ },
++ pos = 'CheckExEnv')
+> 
+> ### * </HEADER>
+> library('nparLD')
+> 
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+> base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+> cleanEx()
+> nameEx("amylase")
+> ### * amylase
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: amylase
+> ### Title: Alpha-amylase saliva study
+> ### Aliases: amylase
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> data(amylase)
+> 
+> fit <- nparLD(resp ~ time1 * time2,
++               data = amylase,
++               subject = "subject",
++               effect = "weighted",
++               hypothesis = "H0F")
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: LD-F2-Design 
+
+Subplot factors: time1, time2
+Number of subjects: 14
+Hypotheses: Tested in distribution functions
+Ranking: Classical ranks (mid-ranks)
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+            Statistic     df p.value
+time1          0.6761 1.0000  0.4109
+time2         14.2672 2.8583  <1e-04
+time1:time2    5.2243 2.1842  0.0042
+
+Use summary(x) for detailed results.
+> 
+> # Dunnett-type contrasts for the levels of time2
+> fit <- nparLD(resp ~ time1 * time2,
++               data = amylase,
++               subject = "subject",
++               hypothesis = "H0p",
++               contrast = list("time2", "Dunnett"),
++               Factor.Information = TRUE)
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: LD-F2-Design 
+
+Subplot factors: time1, time2
+Number of subjects: 14
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+            Statistic     df p.value
+time1          0.6286 1.0000  0.4279
+time2         12.5605 2.9028  <1e-04
+time1:time2    5.2005 2.1744  0.0043
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> plot(fit)
+> plot(MCTP(fit))
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("amylase", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("brdu")
+> ### * brdu
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: brdu
+> ### Title: BrdU incorporation in fibroblasts
+> ### Aliases: brdu
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> ## No test: 
+> data(brdu)
+> 
+> fit <- nparLD(
++   resp ~ dose,
++   data = brdu,
++   subject = "culture",
++   replicate = "replicate",
++   hypothesis = "H0p",
++   cell.weights = "subjects"
++ )
+> 
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: LD-F1-Design 
+
+Subplot factors: dose
+Number of subjects: 5
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+     Statistic    df p.value
+dose   11.4002 1.623  <1e-04
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("brdu", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("dental")
+> ### * dental
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: dental
+> ### Title: Dental growth study
+> ### Aliases: dental
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> data(dental)
+> 
+> dental$time <- factor(dental$time)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ time,
++               data = dental,
++               subject = "subject",
++               hypothesis = "H0F")
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: LD-F1-Design 
+
+Subplot factors: time
+Number of subjects: 16
+Hypotheses: Tested in distribution functions
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+     Statistic     df p.value
+time   31.4877 2.7008  <1e-04
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ time,
++               data = dental,
++               subject = "subject",
++               hypothesis = "H0p",
++               contrast = list("time", "Tukey"))
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: LD-F1-Design 
+
+Subplot factors: time
+Number of subjects: 16
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+     Statistic     df p.value
+time    31.381 2.5496  <1e-04
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> plot(fit)
+> plot(MCTP(fit))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("dental", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("edema")
+> ### * edema
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: edema
+> ### Title: Postoperative edema study
+> ### Aliases: edema
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> data(edema)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group * time1 * time2,
++               data = edema,
++               subject = "subject",
++               hypothesis = "H0F")
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F1-LD-F2-Design 
+
+Whole-plot factors: group
+Subplot factors: time1, time2
+Number of subjects: 58
+Hypotheses: Tested in distribution functions
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+                  Statistic     df p.value
+group                1.0726 1.0000  0.3004
+time1               25.8758 1.0000  <1e-04
+time2               11.0630 2.6997  <1e-04
+group:time1          0.3304 1.0000  0.5654
+group:time2          1.3343 2.6997  0.2626
+time1:time2         15.1855 2.6302  <1e-04
+group:time1:time2    0.7170 2.6302  0.5242
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group * time1 * time2,
++               data = edema,
++               subject = "subject",
++               hypothesis = "H0p",
++               contrast = list("group", "Tukey"),
++               Factor.Information = TRUE)
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F1-LD-F2-Design 
+
+Whole-plot factors: group
+Subplot factors: time1, time2
+Number of subjects: 58
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+                  Statistic     df p.value
+group                1.0783 1.0000  0.2991
+time1               26.9257 1.0000  <1e-04
+time2               11.2978 2.7028  <1e-04
+group:time1          0.3206 1.0000  0.5713
+group:time2          1.3175 2.6841  0.2678
+time1:time2         15.0547 2.6209  <1e-04
+group:time1:time2    0.7091 2.6390  0.5292
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> plot(fit)
+> plot(MCTP(fit))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("edema", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("nparLD")
+> ### * nparLD
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: nparLD
+> ### Title: Nonparametric analysis of longitudinal data
+> ### Aliases: nparLD
+> 
+> ### ** Examples
+> 
+> ## One repeated-measures factor: dental data
+> data(dental)
+> 
+> fit_dental <- nparLD(
++   resp ~ time,
++   data = dental,
++   subject = "subject",
++   hypothesis = "H0p"
++ )
+> 
+> fit_dental
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: LD-F1-Design 
+
+Subplot factors: time
+Number of subjects: 16
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+     Statistic     df p.value
+time    31.381 2.5496  <1e-04
+
+Use summary(x) for detailed results.
+> effects(fit_dental)
+  time Nsubj lambda Nobs Nmiss ScoreMean    RTE Std.Error  Lower  Upper
+1    8    16     16   16     0   19.0625 0.2900    0.0333 0.2294 0.3593
+2   10    16     16   16     0   24.3125 0.3721    0.0345 0.3074 0.4417
+3   12    16     16   16     0   37.0312 0.5708    0.0310 0.5093 0.6302
+4   14    16     16   16     0   49.5938 0.7671    0.0332 0.6958 0.8259
+> 
+> ## Crossed factorial longitudinal design: shoulder data
+> data(shoulder)
+> 
+> ## No test: 
+> fit_shoulder <- nparLD(
++   resp ~ group1 * group2 * time,
++   data = shoulder,
++   subject = "subject",Factor.Information=TRUE,
++   hypothesis = "H0p"
++ )
+> 
+> fit_shoulder
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F2-LD-F1-Design 
+
+Whole-plot factors: group1, group2
+Subplot factors: time
+Number of subjects: 89
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+                   Statistic     df p.value
+group1               85.6180 1.0000  <1e-04
+group2                2.1054 1.0000  0.1468
+time                 15.5969 2.9847  <1e-04
+group1:group2         0.0136 1.0000  0.9073
+group1:time           5.8705 3.0055  0.0005
+group2:time           1.7237 2.9705  0.1602
+group1:group2:time    0.8764 2.9829  0.4519
+
+Use summary(x) for detailed results.
+> effects(fit_shoulder)
+   group1 group2 time Nsubj lambda Nobs Nmiss ScoreMean    RTE Std.Error  Lower
+1       N      F    1    22     22   22     0  337.8426 0.6317    0.0645 0.4991
+2       N      F    2    22     22   22     0  378.7551 0.7083    0.0499 0.6019
+3       N      F    3    22     22   22     0  341.6463 0.6389    0.0478 0.5409
+4       N      F    4    22     22   22     0  384.8577 0.7198    0.0423 0.6300
+5       N      F    5    22     22   22     0  303.4462 0.5673    0.0541 0.4598
+6       N      F    6    22     22   22     0  267.5621 0.5001    0.0414 0.4197
+7       N      M    1    25     25   25     0  359.4139 0.6721    0.0487 0.5707
+8       N      M    2    25     25   25     0  396.3805 0.7413    0.0350 0.6671
+9       N      M    3    25     25   25     0  411.0133 0.7688    0.0367 0.6894
+10      N      M    4    25     25   25     0  388.7945 0.7271    0.0376 0.6475
+11      N      M    5    25     25   25     0  367.5469 0.6874    0.0387 0.6071
+12      N      M    6    25     25   25     0  274.2146 0.5126    0.0400 0.4345
+13      Y      F    1    20     20   20     0  240.3024 0.4491    0.0509 0.3525
+14      Y      F    2    20     20   20     0  189.8470 0.3546    0.0496 0.2643
+15      Y      F    3    20     20   20     0  164.3844 0.3069    0.0436 0.2286
+16      Y      F    4    20     20   20     0  171.7001 0.3206    0.0381 0.2508
+17      Y      F    5    20     20   20     0  121.6538 0.2269    0.0195 0.1910
+18      Y      F    6    20     20   20     0  138.0429 0.2576    0.0280 0.2067
+19      Y      M    1    22     22   22     0  225.2048 0.4208    0.0480 0.3305
+20      Y      M    2    22     22   22     0  246.7546 0.4612    0.0412 0.3822
+21      Y      M    3    22     22   22     0  196.5758 0.3672    0.0372 0.2978
+22      Y      M    4    22     22   22     0  177.3664 0.3312    0.0329 0.2702
+23      Y      M    5    22     22   22     0  166.7774 0.3114    0.0355 0.2464
+24      Y      M    6    22     22   22     0  169.9167 0.3173    0.0334 0.2557
+    Upper
+1  0.7470
+2  0.7960
+3  0.7265
+4  0.7949
+5  0.6688
+6  0.5805
+7  0.7597
+8  0.8039
+9  0.8328
+10 0.7945
+11 0.7578
+12 0.5901
+13 0.5496
+14 0.4566
+15 0.3982
+16 0.3994
+17 0.2673
+18 0.3160
+19 0.5167
+20 0.5421
+21 0.4426
+22 0.3985
+23 0.3847
+24 0.3860
+> factorInfo(fit_shoulder)
+Term: group1
+     RTE Std.Error  Lower  Upper
+N 0.6563    0.0169 0.6225 0.6886
+Y 0.3437    0.0169 0.3114 0.3775
+
+Term: group2
+     RTE Std.Error  Lower  Upper
+F 0.4735    0.0183 0.4378 0.5094
+M 0.5265    0.0183 0.4906 0.5622
+
+Term: time
+     RTE Std.Error  Lower  Upper
+1 0.5434    0.0196 0.5048 0.5815
+2 0.5664    0.0147 0.5373 0.5950
+3 0.5204    0.0128 0.4953 0.5455
+4 0.5247    0.0107 0.5036 0.5457
+5 0.4482    0.0146 0.4198 0.4770
+6 0.3969    0.0151 0.3677 0.4268
+
+Term: group1:group2
+       RTE Std.Error  Lower  Upper
+N:F 0.6277    0.0371 0.5526 0.6971
+N:M 0.6849    0.0299 0.6235 0.7404
+Y:F 0.3193    0.0285 0.2661 0.3776
+Y:M 0.3682    0.0257 0.3194 0.4198
+
+Term: group1:time
+       RTE Std.Error  Lower  Upper
+N:1 0.6519    0.0363 0.5779 0.7193
+N:2 0.7248    0.0259 0.6714 0.7725
+N:3 0.7038    0.0247 0.6533 0.7497
+N:4 0.7235    0.0231 0.6759 0.7665
+N:5 0.6273    0.0287 0.5696 0.6817
+N:6 0.5063    0.0246 0.4582 0.5544
+Y:1 0.4349    0.0330 0.3717 0.5004
+Y:2 0.4079    0.0296 0.3514 0.4668
+Y:3 0.3370    0.0262 0.2878 0.3901
+Y:4 0.3259    0.0228 0.2829 0.3721
+Y:5 0.2691    0.0204 0.2310 0.3110
+Y:6 0.2874    0.0222 0.2460 0.3327
+
+Term: group2:time
+       RTE Std.Error  Lower  Upper
+F:1 0.5404    0.0366 0.4682 0.6109
+F:2 0.5315    0.0313 0.4699 0.5921
+F:3 0.4729    0.0284 0.4179 0.5286
+F:4 0.5202    0.0238 0.4734 0.5666
+F:5 0.3971    0.0268 0.3460 0.4506
+F:6 0.3788    0.0238 0.3334 0.4265
+M:1 0.5465    0.0330 0.4814 0.6100
+M:2 0.6013    0.0264 0.5485 0.6518
+M:3 0.5680    0.0249 0.5186 0.6160
+M:4 0.5292    0.0240 0.4819 0.5759
+M:5 0.4994    0.0249 0.4508 0.5480
+M:6 0.4149    0.0255 0.3660 0.4656
+
+Term: group1:group2:time
+         RTE Std.Error  Lower  Upper
+N:F:1 0.6317    0.0645 0.4991 0.7470
+N:F:2 0.7083    0.0499 0.6019 0.7960
+N:F:3 0.6389    0.0478 0.5409 0.7265
+N:F:4 0.7198    0.0423 0.6300 0.7949
+N:F:5 0.5673    0.0541 0.4598 0.6688
+N:F:6 0.5001    0.0414 0.4197 0.5805
+N:M:1 0.6721    0.0487 0.5707 0.7597
+N:M:2 0.7413    0.0350 0.6671 0.8039
+N:M:3 0.7688    0.0367 0.6894 0.8328
+N:M:4 0.7271    0.0376 0.6475 0.7945
+N:M:5 0.6874    0.0387 0.6071 0.7578
+N:M:6 0.5126    0.0400 0.4345 0.5901
+Y:F:1 0.4491    0.0509 0.3525 0.5496
+Y:F:2 0.3546    0.0496 0.2643 0.4566
+Y:F:3 0.3069    0.0436 0.2286 0.3982
+Y:F:4 0.3206    0.0381 0.2508 0.3994
+Y:F:5 0.2269    0.0195 0.1910 0.2673
+Y:F:6 0.2576    0.0280 0.2067 0.3160
+Y:M:1 0.4208    0.0480 0.3305 0.5167
+Y:M:2 0.4612    0.0412 0.3822 0.5421
+Y:M:3 0.3672    0.0372 0.2978 0.4426
+Y:M:4 0.3312    0.0329 0.2702 0.3985
+Y:M:5 0.3114    0.0355 0.2464 0.3847
+Y:M:6 0.3173    0.0334 0.2557 0.3860
+> ## End(No test)
+> 
+> ## Multiple contrast procedure for an interaction
+> 
+> ## No test: 
+> fit_contrast <- nparLD(
++   resp ~ group1 * group2 * time,
++   data = shoulder,
++   subject = "subject",
++   hypothesis = "H0p",
++   contrast = list("group1:time")
++ )
+> 
+> MCTP(fit_contrast)
+
+Multiple contrast test procedure
+-------------------------------------------------
+Factor or interaction: group1:time
+Contrast type: Default
+SCI method: fisher
+Confidence level: 95%
+
+Global result
+-------------------------------------------------
+  Statistic Quantile p.value
+1    3.9518   2.6577  0.0011
+
+Local contrast results
+-------------------------------------------------
+    Estimate Std.Error   Lower   Upper Statistic p.value df
+C1   -0.0478    0.0197 -0.1000  0.0047   -2.4219  0.0876 59
+C2    0.0022    0.0145 -0.0363  0.0407    0.1520  1.0000 59
+C3    0.0271    0.0127 -0.0067  0.0609    2.1289  0.1651 59
+C4    0.0425    0.0107  0.0139  0.0710    3.9518  0.0011 59
+C5    0.0228    0.0145 -0.0158  0.0614    1.5702  0.4379 59
+C6   -0.0468    0.0141 -0.0841 -0.0094   -3.3246  0.0081 59
+C7    0.0478    0.0197 -0.0047  0.1000    2.4219  0.0876 59
+C8   -0.0022    0.0145 -0.0407  0.0363   -0.1520  1.0000 59
+C9   -0.0271    0.0127 -0.0609  0.0067   -2.1289  0.1651 59
+C10  -0.0425    0.0107 -0.0710 -0.0139   -3.9518  0.0011 59
+C11  -0.0228    0.0145 -0.0614  0.0158   -1.5702  0.4379 59
+C12   0.0468    0.0141  0.0094  0.0841    3.3246  0.0081 59
+
+Contrast matrix not shown by default.
+Use `print(MCTP(x), show.matrix = TRUE)` to display it,
+or `contrastMatrix(x)` to extract it.
+
+Note: For sci.method = "fisher", test statistics are on the
+Fisher-transformed scale; estimates, SEs, and SCIs are reported
+on the original scale.
+> print(MCTP(fit_contrast), show.matrix = TRUE)
+
+Multiple contrast test procedure
+-------------------------------------------------
+Factor or interaction: group1:time
+Contrast type: Default
+SCI method: fisher
+Confidence level: 95%
+
+Global result
+-------------------------------------------------
+  Statistic Quantile p.value
+1    3.9518   2.6577  0.0011
+
+Local contrast results
+-------------------------------------------------
+    Estimate Std.Error   Lower   Upper Statistic p.value df
+C1   -0.0478    0.0197 -0.1000  0.0047   -2.4219  0.0876 59
+C2    0.0022    0.0145 -0.0363  0.0407    0.1520  1.0000 59
+C3    0.0271    0.0127 -0.0067  0.0609    2.1289  0.1651 59
+C4    0.0425    0.0107  0.0139  0.0710    3.9518  0.0011 59
+C5    0.0228    0.0145 -0.0158  0.0614    1.5702  0.4379 59
+C6   -0.0468    0.0141 -0.0841 -0.0094   -3.3246  0.0081 59
+C7    0.0478    0.0197 -0.0047  0.1000    2.4219  0.0876 59
+C8   -0.0022    0.0145 -0.0407  0.0363   -0.1520  1.0000 59
+C9   -0.0271    0.0127 -0.0609  0.0067   -2.1289  0.1651 59
+C10  -0.0425    0.0107 -0.0710 -0.0139   -3.9518  0.0011 59
+C11  -0.0228    0.0145 -0.0614  0.0158   -1.5702  0.4379 59
+C12   0.0468    0.0141  0.0094  0.0841    3.3246  0.0081 59
+
+Contrast matrix
+-------------------------------------------------
+      N:F:1   N:F:2   N:F:3   N:F:4   N:F:5   N:F:6   N:M:1   N:M:2   N:M:3
+C1   0.2083 -0.0417 -0.0417 -0.0417 -0.0417 -0.0417  0.2083 -0.0417 -0.0417
+C2  -0.0417  0.2083 -0.0417 -0.0417 -0.0417 -0.0417 -0.0417  0.2083 -0.0417
+C3  -0.0417 -0.0417  0.2083 -0.0417 -0.0417 -0.0417 -0.0417 -0.0417  0.2083
+C4  -0.0417 -0.0417 -0.0417  0.2083 -0.0417 -0.0417 -0.0417 -0.0417 -0.0417
+C5  -0.0417 -0.0417 -0.0417 -0.0417  0.2083 -0.0417 -0.0417 -0.0417 -0.0417
+C6  -0.0417 -0.0417 -0.0417 -0.0417 -0.0417  0.2083 -0.0417 -0.0417 -0.0417
+C7  -0.2083  0.0417  0.0417  0.0417  0.0417  0.0417 -0.2083  0.0417  0.0417
+C8   0.0417 -0.2083  0.0417  0.0417  0.0417  0.0417  0.0417 -0.2083  0.0417
+C9   0.0417  0.0417 -0.2083  0.0417  0.0417  0.0417  0.0417  0.0417 -0.2083
+C10  0.0417  0.0417  0.0417 -0.2083  0.0417  0.0417  0.0417  0.0417  0.0417
+C11  0.0417  0.0417  0.0417  0.0417 -0.2083  0.0417  0.0417  0.0417  0.0417
+C12  0.0417  0.0417  0.0417  0.0417  0.0417 -0.2083  0.0417  0.0417  0.0417
+      N:M:4   N:M:5   N:M:6   Y:F:1   Y:F:2   Y:F:3   Y:F:4   Y:F:5   Y:F:6
+C1  -0.0417 -0.0417 -0.0417 -0.2083  0.0417  0.0417  0.0417  0.0417  0.0417
+C2  -0.0417 -0.0417 -0.0417  0.0417 -0.2083  0.0417  0.0417  0.0417  0.0417
+C3  -0.0417 -0.0417 -0.0417  0.0417  0.0417 -0.2083  0.0417  0.0417  0.0417
+C4   0.2083 -0.0417 -0.0417  0.0417  0.0417  0.0417 -0.2083  0.0417  0.0417
+C5  -0.0417  0.2083 -0.0417  0.0417  0.0417  0.0417  0.0417 -0.2083  0.0417
+C6  -0.0417 -0.0417  0.2083  0.0417  0.0417  0.0417  0.0417  0.0417 -0.2083
+C7   0.0417  0.0417  0.0417  0.2083 -0.0417 -0.0417 -0.0417 -0.0417 -0.0417
+C8   0.0417  0.0417  0.0417 -0.0417  0.2083 -0.0417 -0.0417 -0.0417 -0.0417
+C9   0.0417  0.0417  0.0417 -0.0417 -0.0417  0.2083 -0.0417 -0.0417 -0.0417
+C10 -0.2083  0.0417  0.0417 -0.0417 -0.0417 -0.0417  0.2083 -0.0417 -0.0417
+C11  0.0417 -0.2083  0.0417 -0.0417 -0.0417 -0.0417 -0.0417  0.2083 -0.0417
+C12  0.0417  0.0417 -0.2083 -0.0417 -0.0417 -0.0417 -0.0417 -0.0417  0.2083
+      Y:M:1   Y:M:2   Y:M:3   Y:M:4   Y:M:5   Y:M:6
+C1  -0.2083  0.0417  0.0417  0.0417  0.0417  0.0417
+C2   0.0417 -0.2083  0.0417  0.0417  0.0417  0.0417
+C3   0.0417  0.0417 -0.2083  0.0417  0.0417  0.0417
+C4   0.0417  0.0417  0.0417 -0.2083  0.0417  0.0417
+C5   0.0417  0.0417  0.0417  0.0417 -0.2083  0.0417
+C6   0.0417  0.0417  0.0417  0.0417  0.0417 -0.2083
+C7   0.2083 -0.0417 -0.0417 -0.0417 -0.0417 -0.0417
+C8  -0.0417  0.2083 -0.0417 -0.0417 -0.0417 -0.0417
+C9  -0.0417 -0.0417  0.2083 -0.0417 -0.0417 -0.0417
+C10 -0.0417 -0.0417 -0.0417  0.2083 -0.0417 -0.0417
+C11 -0.0417 -0.0417 -0.0417 -0.0417  0.2083 -0.0417
+C12 -0.0417 -0.0417 -0.0417 -0.0417 -0.0417  0.2083
+
+Note: For sci.method = "fisher", test statistics are on the
+Fisher-transformed scale; estimates, SEs, and SCIs are reported
+on the original scale.
+> ## End(No test)
+> 
+> ## Missing response values
+> ## No test: 
+> dat_miss <- dental
+> dat_miss$resp[c(2, 7, 12)] <- NA
+> 
+> fit_miss <- nparLD(
++   resp ~ time,
++   data = dat_miss,
++   subject = "subject",
++   hypothesis = "H0p"
++ )
+> 
+> fit_miss
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: LD-F1-Design 
+
+Subplot factors: time
+Number of subjects: 16
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+     Statistic   df p.value
+time    24.039 2.84  <1e-04
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> ## Dependent replicate measurements: BrdU data
+> data(brdu)
+> 
+> ## No test: 
+> fit_brdu <- nparLD(
++   resp ~ dose,
++   data = brdu,
++   subject = "culture",
++   replicate = "replicate",
++   hypothesis = "H0p",
++   cell.weights = "subjects"
++ )
+> 
+> fit_brdu
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: LD-F1-Design 
+
+Subplot factors: dose
+Number of subjects: 5
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+     Statistic    df p.value
+dose   11.4002 1.623  <1e-04
+
+Use summary(x) for detailed results.
+> effects(fit_brdu)
+  dose Nsubj lambda Nobs Nmiss ScoreMean    RTE Std.Error  Lower  Upper
+1    0     5      5   15     0   22.1333 0.3606    0.0468 0.2748 0.4562
+2  0.1     5      5   15     0   17.0000 0.2750    0.0297 0.2207 0.3369
+3    1     5      5   15     0   38.7000 0.6367    0.0563 0.5210 0.7384
+4   10     5      5   15     0   44.1667 0.7278    0.0781 0.5525 0.8527
+> ## End(No test)
+> 
+> ## No test: 
+> ## Graphical displays
+> plot(fit_dental)
+> plot(fit_shoulder)
+> plot(MCTP(fit_contrast))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("nparLD", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("nparLDApp")
+> ### * nparLDApp
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: nparLDApp
+> ### Title: Launch the nparLD Shiny application
+> ### Aliases: nparLDApp
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D nparLDApp()
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("nparLDApp", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("panic")
+> ### * panic
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: panic
+> ### Title: Panic disorder study I
+> ### Aliases: panic
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> data(panic)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ time,
++               data = panic,
++               subject = "subject",
++               hypothesis = "H0F", contrast =list("time", "Dunnett"))
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: LD-F1-Design 
+
+Subplot factors: time
+Number of subjects: 16
+Hypotheses: Tested in distribution functions
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+     Statistic     df p.value
+time   36.9366 2.2341  <1e-04
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ time,
++               data = panic,
++               subject = "subject",
++               hypothesis = "H0p",
++               contrast = list("time", "Dunnett"))
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: LD-F1-Design 
+
+Subplot factors: time
+Number of subjects: 16
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+     Statistic     df p.value
+time   49.6451 2.7651  <1e-04
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> plot(fit)
+> plot(MCTP(fit))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("panic", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("panic2")
+> ### * panic2
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: panic2
+> ### Title: Panic disorder study II
+> ### Aliases: panic2
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> data(panic2)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group * time,
++               data = panic2,
++               subject = "subject",
++               hypothesis = "H0F", effect="unweighted")
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F1-LD-F1-Design 
+
+Whole-plot factors: group
+Subplot factors: time
+Number of subjects: 37
+Hypotheses: Tested in distribution functions
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+           Statistic     df p.value
+group         7.6441 1.0000  0.0057
+time         31.4211 2.7143  <1e-04
+group:time    1.5750 2.7143  0.1974
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group * time,
++               data = panic2,
++               subject = "subject",
++               hypothesis = "H0p",
++               contrast = list("group:time"),
++               Factor.Information = TRUE,
++               covariance=TRUE)
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F1-LD-F1-Design 
+
+Whole-plot factors: group
+Subplot factors: time
+Number of subjects: 37
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+           Statistic     df p.value
+group         8.9556 1.0000  0.0028
+time         29.8411 2.9271  <1e-04
+group:time    1.4425 2.7647  0.2306
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> plot(fit)
+> plot(MCTP(fit))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("panic2", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("plasma")
+> ### * plasma
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: plasma
+> ### Title: Plasma-renin activity study
+> ### Aliases: plasma
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> data(plasma)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group * time,
++               data = plasma,
++               subject = "subject",
++               hypothesis = "H0F", effect="weighted")
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F1-LD-F1-Design 
+
+Whole-plot factors: group
+Subplot factors: time
+Number of subjects: 49
+Hypotheses: Tested in distribution functions
+Ranking: Classical ranks (mid-ranks)
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+           Statistic     df p.value
+group        23.7469 2.6102  <1e-04
+time         53.6677 3.1082  <1e-04
+group:time   16.0398 7.7784  <1e-04
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group * time,
++               data = plasma,
++               subject = "subject",
++               hypothesis = "H0p",
++               contrast = list("group", "Tukey"))
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F1-LD-F1-Design 
+
+Whole-plot factors: group
+Subplot factors: time
+Number of subjects: 49
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+           Statistic     df p.value
+group        25.1729 2.4778  <1e-04
+time         52.1623 3.1705  <1e-04
+group:time   14.7807 8.0213  <1e-04
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> plot(fit)
+> plot(MCTP(fit))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("plasma", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("plot.nparld_fit")
+> ### * plot.nparld_fit
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: plot.nparld_fit
+> ### Title: Plot nparLD results
+> ### Aliases: plot.nparld_fit
+> 
+> ### ** Examples
+> 
+> ## No test: 
+> data(shoulder)
+> 
+> fit <- nparLD(
++   resp ~ group1 * group2 * time,
++   data = shoulder,
++   subject = "subject",
++   hypothesis = "H0p",
++   Factor.Information = TRUE
++ )
+> 
+> ## Cell-level relative effects
+> plot(fit)
+> 
+> ## Factor-specific relative effects and confidence intervals
+> plot(fit, term = "time")
+> plot(fit, term = "group1:time")
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("plot.nparld_fit", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("plot.nparld_mctp")
+> ### * plot.nparld_mctp
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: plot.nparld_mctp
+> ### Title: Plot nparLD multiple contrast results
+> ### Aliases: plot.nparld_mctp
+> 
+> ### ** Examples
+> 
+> ## No test: 
+> data(shoulder)
+> 
+> fit <- nparLD(
++   resp ~ group1 * group2 * time,
++   data = shoulder,
++   subject = "subject",
++   hypothesis = "H0p",
++   contrast = list("time", "Dunnett")
++ )
+> 
+> plot(MCTP(fit))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("plot.nparld_mctp", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("rat")
+> ### * rat
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: rat
+> ### Title: Rat growth study
+> ### Aliases: rat
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> 
+> ## No test: 
+> data(rat)
+> 
+> fit <- nparLD(resp ~ group * time,
++               data = rat,
++               subject = "subject",
++               hypothesis = "H0F")
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F1-LD-F1-Design 
+
+Whole-plot factors: group
+Subplot factors: time
+Number of subjects: 27
+Hypotheses: Tested in distribution functions
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+           Statistic     df p.value
+group         5.1742 1.9151  0.0064
+time       1016.6934 1.9685  <1e-04
+group:time   11.3910 3.5051  <1e-04
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group * time,
++               data = rat,
++               subject = "subject",
++               hypothesis = "H0p",
++               contrast = list("group:time"))
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F1-LD-F1-Design 
+
+Whole-plot factors: group
+Subplot factors: time
+Number of subjects: 27
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+           Statistic     df p.value
+group         5.5394 1.8785  0.0047
+time       2099.3215 1.5952  <1e-04
+group:time   11.7528 3.5227  <1e-04
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> plot(fit)
+> plot(MCTP(fit))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("rat", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("respiration")
+> ### * respiration
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: respiration
+> ### Title: Respiratory disorder study
+> ### Aliases: respiration
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> 
+> ## No test: 
+> data(respiration)
+> 
+> fit <- nparLD(resp ~ center * treatment * time,
++               data = respiration,
++               subject = "patient",
++               hypothesis = "H0F")
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F2-LD-F1-Design 
+
+Whole-plot factors: center, treatment
+Subplot factors: time
+Number of subjects: 111
+Hypotheses: Tested in distribution functions
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+                      Statistic     df p.value
+center                  10.2777 1.0000  0.0013
+treatment                9.3410 1.0000  0.0022
+time                     4.4568 3.3223  0.0028
+center:treatment         1.2463 1.0000  0.2643
+center:time              1.6103 3.3223  0.1794
+treatment:time           5.4468 3.3223  0.0006
+center:treatment:time    0.0584 3.3223  0.9869
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ center * treatment * time,
++               data = respiration,
++               subject = "patient",
++               hypothesis = "H0p",
++               contrast = list("treatment", "Tukey"))
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F2-LD-F1-Design 
+
+Whole-plot factors: center, treatment
+Subplot factors: time
+Number of subjects: 111
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+                      Statistic     df p.value
+center                  10.4902 1.0000  0.0012
+treatment                9.5776 1.0000  0.0020
+time                     4.2604 3.1894  0.0042
+center:treatment         1.2463 1.0000  0.2643
+center:time              1.5809 3.3167  0.1868
+treatment:time           5.3983 3.3443  0.0006
+center:treatment:time    0.0580 3.3349  0.9873
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> plot(fit)
+> plot(MCTP(fit))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("respiration", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("shoulder")
+> ### * shoulder
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: shoulder
+> ### Title: Shoulder tip pain study
+> ### Aliases: shoulder
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> data(shoulder)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group1 * group2 * time,
++               data = shoulder,
++               subject = "subject",
++               hypothesis = "H0F")
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F2-LD-F1-Design 
+
+Whole-plot factors: group1, group2
+Subplot factors: time
+Number of subjects: 89
+Hypotheses: Tested in distribution functions
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+                   Statistic    df p.value
+group1               76.2677 1.000  <1e-04
+group2                2.1966 1.000  0.1383
+time                 16.1169 2.989  <1e-04
+group1:group2         0.0134 1.000  0.9077
+group1:time           5.8915 2.989  0.0005
+group2:time           1.7398 2.989  0.1566
+group1:group2:time    0.8821 2.989  0.4491
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group1 * group2 * time,
++               data = shoulder,
++               subject = "subject",
++               hypothesis = "H0p",
++               contrast = list("group1:time"),
++               Factor.Information=TRUE)
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F2-LD-F1-Design 
+
+Whole-plot factors: group1, group2
+Subplot factors: time
+Number of subjects: 89
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+                   Statistic     df p.value
+group1               85.6180 1.0000  <1e-04
+group2                2.1054 1.0000  0.1468
+time                 15.5969 2.9847  <1e-04
+group1:group2         0.0136 1.0000  0.9073
+group1:time           5.8705 3.0055  0.0005
+group2:time           1.7237 2.9705  0.1602
+group1:group2:time    0.8764 2.9829  0.4519
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> plot(fit)
+> plot(MCTP(fit))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("shoulder", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("tree")
+> ### * tree
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: tree
+> ### Title: Vitality of treetops
+> ### Aliases: tree
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> data(tree)
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group * time,
++               data = tree,
++               subject = "subject",
++               hypothesis = "H0F")
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F1-LD-F1-Design 
+
+Whole-plot factors: group
+Subplot factors: time
+Number of subjects: 72
+Hypotheses: Tested in distribution functions
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+           Statistic     df p.value
+group         2.3638 1.9672  0.0950
+time         21.1653 2.7307  <1e-04
+group:time    3.1448 5.3498  0.0063
+
+Use summary(x) for detailed results.
+> ## End(No test)
+> 
+> 
+> ## No test: 
+> fit <- nparLD(resp ~ group * time,
++               data = tree,
++               subject = "subject",
++               hypothesis = "H0p",
++               contrast = list("group:time"))
+> fit
+
+Nonparametric Longitudinal Analysis
+-------------------------------------------------
+Design: F1-LD-F1-Design 
+
+Whole-plot factors: group
+Subplot factors: time
+Number of subjects: 72
+Hypotheses: Tested in marginal Mann-Whitney effects
+Ranking: Pseudo-ranks
+
+ANOVA-type statistic (ATS)
+-------------------------------------------------
+           Statistic     df p.value
+group         2.3797 1.9632  0.0936
+time         18.1431 2.6166  <1e-04
+group:time    3.0206 5.2984  0.0085
+
+Multiple contrast results available via MCTP(x).
+
+Use summary(x) for detailed results.
+> plot(fit)
+> plot(MCTP(fit))
+> ## End(No test)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("tree", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> ### * <FOOTER>
+> ###
+> cleanEx()
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  111.78 7.39 120.28 NA NA 
+> grDevices::dev.off()
+null device 
+          1 
+> ###
+> ### Local variables: ***
+> ### mode: outline-minor ***
+> ### outline-regexp: "\\(> \\)?### [*]+" ***
+> ### End: ***
+> quit('no')

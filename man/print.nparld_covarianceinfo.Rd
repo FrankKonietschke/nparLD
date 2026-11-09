@@ -16,7 +16,3 @@
 \description{
 Displays the estimated covariance matrix of the relative effect estimator.
 }
-\details{
-The printed matrix is the estimated covariance matrix used for the selected
-hypothesis. It is returned when \code{covariance = TRUE}.
-}

@@ -2,33 +2,40 @@
 # Output Functions
 #*******************************************************************************
 
-utils::globalVariables(c(".data", "RTE", "lower", "upper"))
+utils::globalVariables(c(".data", "RTE", "Lower", "Upper"))
 
-.nparld_pvalue_columns <- function(tab) {
-  nms <- names(tab)
-  low <- tolower(nms)
+.nparld_print_table <- function(tab, digits = 4, ...) {
 
-  low %in% c("p-value", "p.value", "pval", "p") |
-    grepl("^p\\.", low) |
-    grepl("^p_", low) |
-    grepl("p-value$", low) |
-    grepl("p.value$", low)
-}
-
-.nparld_print_table <- function(tab, digits = 4, eps = 1e-4, ...) {
   tab <- as.data.frame(tab)
-
-  p_cols <- .nparld_pvalue_columns(tab)
-  num_cols <- vapply(tab, is.numeric, logical(1))
-
-  round_cols <- num_cols & !p_cols
-  tab[round_cols] <- lapply(tab[round_cols], round, digits = digits)
-
-  for (v in names(tab)[p_cols]) {
-    tab[[v]] <- format.pval(tab[[v]], digits = digits, eps = eps)
+  cutoff <- 10^(-digits)
+  for (nm in names(tab)) {
+   if (nm %in% c("p.value", "p.t", "p.perm")) {
+      p <- tab[[nm]]
+      tab[[nm]] <- ifelse(
+        is.na(p),
+        NA_character_,
+        ifelse(
+          p < cutoff,
+          paste0("<", format(cutoff, scientific = TRUE)),
+          formatC(
+            p,
+            format = "f",
+            digits = digits
+          )
+        )
+      )
+    } else if (is.numeric(tab[[nm]])) {
+      tab[[nm]] <- round(
+        tab[[nm]],
+        digits = digits
+      )
+    }
   }
-
-  print(tab, ...)
+  print(
+    tab,
+    quote = FALSE,
+    ...
+  )
   invisible(tab)
 }
 
@@ -98,16 +105,6 @@ print.nparld_fit <- function(x, digits = 4, ...) {
     cat("Ranking: ", x$text.ranks, "\n", sep = "")
   }
 
-  if (!is.null(x$hypothesis) &&
-      identical(x$hypothesis, "H0p") &&
-      !is.null(x$CI.method)) {
-    cat(
-      "Confidence interval method: ",
-      x$CI.method,
-      "\n",
-      sep = ""
-    )
-  }
 
   if (!is.null(x$ATS)) {
     cat("\nANOVA-type statistic (ATS)\n")
@@ -127,23 +124,15 @@ cat("\nUse summary(x) for detailed results.\n")
 
 #' Print nparLD covariance matrix
 #'
-#' Displays the estimated covariance matrix of the relative effect estimator. 
+#' Displays the estimated covariance matrix of the relative effect estimator.
 #'
 #' @param x An object of class \code{"nparld_covarianceinfo"}.
 #' @param digits Number of digits used for printing numerical results.
 #' @param ... Further arguments.
 #'
-#' @details
-#' The printed matrix is the estimated covariance matrix used for the selected
-#' hypothesis. It is returned when \code{covariance = TRUE}.
 #' @export
 print.nparld_covarianceinfo <- function(x, digits = 4, ...) {
-
-  cat("\nEstimated covariance matrix\n")
-  cat("-------------------------------------------------\n")
-
   print(round(unclass(x), digits = digits))
-
   invisible(x)
 }
 
@@ -168,20 +157,22 @@ print.nparld_covarianceinfo <- function(x, digits = 4, ...) {
 #' @export
 print.nparld_factorinfo <- function(x, digits = 4, ...) {
 
-  cat("\nFactor-specific relative effects\n")
-  cat("-------------------------------------------------\n")
-
   for (i in seq_along(x)) {
 
-    cat("\nTerm: ", names(x)[i], "\n", sep = "")
+    if (i > 1L) cat("\n")
+    cat("Term: ", names(x)[i], "\n", sep = "")
 
     tab <- as.data.frame(x[[i]])
 
     num_cols <- vapply(tab, is.numeric, logical(1))
 
-    tab[num_cols] <- lapply(tab[num_cols], round, digits = digits)
+    tab[num_cols] <- lapply(
+      tab[num_cols],
+      round,
+      digits = digits
+    )
 
-    print(tab)
+    print(tab, quote = FALSE)
   }
 
   invisible(x)
@@ -227,6 +218,7 @@ summary.nparld_fit <- function(object, ...) {
     text.hypotheses = object$text.hypotheses,
     text.ranks = object$text.ranks,
     CI.method = object$CI.method,
+    alpha = object$.internal$alpha,
 
     effects = object$effects,
     factor.info = object$factor.info,
@@ -236,7 +228,7 @@ summary.nparld_fit <- function(object, ...) {
 
     MCTP = object$MCTP,
 
-    covariance.available = !is.null(object$covariance),
+    covariance.available = !is.null(object$covariance.info),
 
     Permutation = if (!is.null(object$perm) &&
                       isTRUE(object$perm$available)) {
@@ -326,10 +318,26 @@ print.summary.nparld_fit <- function(x, digits = 4, ...) {
       "\n",
       sep = ""
     )
+    alpha <- x$alpha
+
+if (!is.null(alpha) &&
+    length(alpha) == 1L &&
+    is.finite(alpha)) {
+
+    cat(
+      "Confidence level: ",
+      format(
+        100 * (1 - x$alpha),
+        trim = TRUE
+      ),
+      "%\n",
+      sep = ""
+    )
+}
   }
 
   if (!is.null(x$effects)) {
-    cat("\nEstimated relative effects\n")
+    cat("\nEstimated relative effects (RTE)\n")
     cat("-------------------------------------------------\n")
     print(x$effects, digits = digits)
   }
@@ -381,7 +389,6 @@ print.summary.nparld_fit <- function(x, digits = 4, ...) {
 #' \code{show.matrix = TRUE}.
 #'
 #' @param x An object of class \code{"nparld_mctp"}.
-#' @param x An object of class \code{"nparld_mctp"}.
 #' @param digits Number of digits used for printing numerical results.
 #' @param show.matrix Logical. If \code{TRUE}, print the contrast matrix used in the
 #'   multiple contrast procedure.
@@ -396,16 +403,48 @@ print.summary.nparld_fit <- function(x, digits = 4, ...) {
 #' @export
 print.nparld_mctp <- function(x, digits = 4, show.matrix = FALSE, ...) {
 
-  cat("\nMultiple contrast test procedure\n")
-  cat("-------------------------------------------------\n")
+   cat("\nMultiple contrast test procedure\n")
+   cat("-------------------------------------------------\n")
 
   if (!is.null(x$Factor)) {
     cat("Factor or interaction: ", x$Factor, "\n", sep = "")
   }
 
-  if (!is.null(x$sci.method) && !is.na(x$sci.method)) {
-    cat("SCI method: ", x$sci.method, "\n", sep = "")
+  if (!is.null(x$Contrast.Type)) {
+    cat(
+      "Contrast type: ",
+      x$Contrast.Type,
+      "\n",
+      sep = ""
+    )
   }
+
+if (!is.null(x$sci.method) &&
+    length(x$sci.method) == 1L &&
+    !is.na(x$sci.method)) {
+
+  cat(
+    "SCI method: ",
+    x$sci.method,
+    "\n",
+    sep = ""
+  )
+
+  if (!is.null(x$alpha) &&
+      length(x$alpha) == 1L &&
+      is.finite(x$alpha)) {
+
+    cat(
+      "Confidence level: ",
+      format(
+        100 * (1 - x$alpha),
+        trim = TRUE
+      ),
+      "%\n",
+      sep = ""
+    )
+  }
+}
 
   if (!is.null(x$Global.Result)) {
     cat("\nGlobal result\n")
@@ -426,8 +465,21 @@ print.nparld_mctp <- function(x, digits = 4, show.matrix = FALSE, ...) {
       print(round(x$Contrast.Matrix, digits = digits))
     } else {
       cat("\nContrast matrix not shown by default.\n")
-      cat("Use `print(x$MCTP, show.matrix = TRUE)` to display it, or `contrastMatrix(x)` to extract it.\n")
+      cat(
+        "Use `print(MCTP(x), show.matrix = TRUE)` to display it,\n",
+        "or `contrastMatrix(x)` to extract it.\n",
+        sep = ""
+      )
     }
+  }
+
+  if (identical(x$sci.method, "fisher")) {
+    cat(
+      "\nNote: For sci.method = \"fisher\", test statistics are on the\n",
+      "Fisher-transformed scale; estimates, SEs, and SCIs are reported\n",
+      "on the original scale.\n",
+      sep = ""
+    )
   }
 
   invisible(x)
@@ -542,12 +594,40 @@ plot.nparld_fit <- function(x,
   }
 
   eff <- x$effects
-  has_ci <- all(c("lower", "upper") %in% names(eff))
+  has_ci <- all(c("Lower", "Upper") %in% names(eff))
+
+  subtitle <- NULL
+
+if (is.null(main)) {
+
+  if (has_ci) {
+
+    alpha <- if (!is.null(x$.internal$alpha)) {
+      x$.internal$alpha
+    } else {
+      0.05
+    }
+
+    conf_level <- 100 * (1 - alpha)
+
+    main <- paste0(
+      format(conf_level, trim = TRUE),
+      "% confidence intervals"
+    )
+
+    subtitle <- "Cell-level relative effects"
+
+  } else {
+
+    main <- "Estimated relative effects"
+    subtitle <- "Cell-level effects"
+  }
+}
 
   non_factor_cols <- c(
     "n", "NAs",
     "Nsubj", "lambda", "Nobs", "Nmiss",
-    "ScoreMean", "RTE", "std.error", "lower", "upper"
+    "ScoreMean", "RTE", "Std.Error", "Lower", "Upper"
   )
 
   factor_cols <- setdiff(names(eff), non_factor_cols)
@@ -613,7 +693,7 @@ plot.nparld_fit <- function(x,
   if (has_ci) {
     p <- p +
       ggplot2::geom_errorbar(
-        ggplot2::aes(ymin = lower, ymax = upper),
+        ggplot2::aes(ymin = Lower, ymax = Upper),
         width = 0.2,
         position = pd
       )
@@ -629,13 +709,22 @@ plot.nparld_fit <- function(x,
   }
 
   p +
-    ggplot2::labs(
-      title = main,
-      x = xlab,
-      y = ylab,
-      color = legend.title
-    ) +
-    ggplot2::theme_bw()
+ggplot2::labs(
+  title = main,
+  subtitle = subtitle,
+  x = xlab,
+  y = ylab,
+  color = legend.title
+)+
+    ggplot2::theme_bw(base_size = 16) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(size = 18),
+    plot.subtitle = ggplot2::element_text(size = 16),
+    axis.title = ggplot2::element_text(size = 16),
+    axis.text = ggplot2::element_text(size = 15),
+    legend.title = ggplot2::element_text(size = 15),
+    legend.text = ggplot2::element_text(size = 14)
+  )
 }
 
 .nparld_plot_factor_information <- function(x,
@@ -649,7 +738,10 @@ plot.nparld_fit <- function(x,
                                             ...) {
 
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
-    stop("Package 'ggplot2' required for plotting.", call. = FALSE)
+    stop(
+      "Package 'ggplot2' required for plotting.",
+      call. = FALSE
+    )
   }
 
   if (is.null(x$factor.info)) {
@@ -660,84 +752,255 @@ plot.nparld_fit <- function(x,
     )
   }
 
-  if (x$hypothesis != "H0p") {
-    stop(
-      "Factor-information confidence interval plots are available ",
-      "only for hypothesis = 'H0p'.",
-      call. = FALSE
-    )
-  }
-
-  dat <- .nparld_collect_factor_information(x$factor.info, term)
-
-estimate_col <- intersect(
-  c("Rel.Effect", "RTE", "Estimate", "estimate"),
-  names(dat)
-)[1]
-
-lower_col <- intersect(
-  c("Lower", "lower", "lower.CL", "Lower.CL", "Lower.CI", "lower.CI"),
-  names(dat)
-)[1]
-
-upper_col <- intersect(
-  c("Upper", "upper", "upper.CL", "Upper.CL", "Upper.CI", "upper.CI"),
-  names(dat)
-)[1]
-  if (is.na(estimate_col) || is.na(lower_col) || is.na(upper_col)) {
-    stop(
-      "Could not identify estimate and confidence interval columns in factor.info.",
-      call. = FALSE
-    )
-  }
-
-stat_cols <- c(
-  "term", "Nsubj", "lambda", "Nobs", "Nmiss",
-  "ScoreMean", "RTE", "Rel.Effect", "Estimate", "estimate",
-  "std.error", "Std.Error", "SE",
-  "lower", "Lower", "lower.CL", "Lower.CL", "Lower.CI", "lower.CI",
-  "upper", "Upper", "upper.CL", "Upper.CL", "Upper.CI", "upper.CI"
-)
-
-if (!".label" %in% names(dat)) {
-  label_cols <- setdiff(names(dat), stat_cols)
-
-  if (length(label_cols) == 0L) {
-    dat$.label <- seq_len(nrow(dat))
-  } else {
-    dat$.label <- apply(dat[label_cols], 1, paste, collapse = ":")
-  }
-}
-
-  dat$.label <- factor(dat$.label, levels = unique(dat$.label))
-
-  if (is.null(main)) {
-  main <- paste("Estimated relative effects:", paste(term, collapse = ", "))
-}
-
-ggplot2::ggplot(
-  dat,
-  ggplot2::aes(
-    x = .data[[".label"]],
-    y = .data[[estimate_col]],
-    ymin = .data[[lower_col]],
-    ymax = .data[[upper_col]]
+  dat <- .nparld_collect_factor_information(
+    x$factor.info,
+    term
   )
-) +
-  ggplot2::geom_hline(
-    yintercept = reference,
-    linetype = ref.lty,
-    colour = ref.col
-  ) +
-  ggplot2::geom_pointrange() +
-  ggplot2::facet_wrap(ggplot2::vars(.data[["term"]]), scales = "free_x") +
+
+  # ------------------------------------------------------------
+  # Identify estimate column
+  # ------------------------------------------------------------
+
+  estimate_col <- intersect(
+    c(
+      "Rel.Effect",
+      "RTE",
+      "Estimate",
+      "estimate"
+    ),
+    names(dat)
+  )[1L]
+
+  if (
+    length(estimate_col) == 0L ||
+    is.na(estimate_col)
+  ) {
+    stop(
+      "Could not identify the effect-estimate column in factor.info.",
+      call. = FALSE
+    )
+  }
+
+
+  # ------------------------------------------------------------
+  # Identify confidence interval columns, if available
+  # ------------------------------------------------------------
+
+  lower_col <- intersect(
+    c(
+      "Lower",
+      "lower",
+      "lower.CL",
+      "Lower.CL",
+      "Lower.CI",
+      "lower.CI"
+    ),
+    names(dat)
+  )[1L]
+
+  upper_col <- intersect(
+    c(
+      "Upper",
+      "upper",
+      "upper.CL",
+      "Upper.CL",
+      "Upper.CI",
+      "upper.CI"
+    ),
+    names(dat)
+  )[1L]
+
+  has_ci <-
+    length(lower_col) > 0L &&
+    length(upper_col) > 0L &&
+    !is.na(lower_col) &&
+    !is.na(upper_col)
+
+  show_ci <-
+    identical(x$hypothesis, "H0p") &&
+    has_ci
+
+
+  # ------------------------------------------------------------
+  # Construct labels
+  # ------------------------------------------------------------
+
+  stat_cols <- c(
+    "term",
+    "Nsubj",
+    "lambda",
+    "Nobs",
+    "Nmiss",
+    "ScoreMean",
+    "RTE",
+    "Rel.Effect",
+    "Estimate",
+    "estimate",
+    "std.error",
+    "Std.Error",
+    "SE",
+    "lower",
+    "Lower",
+    "lower.CL",
+    "Lower.CL",
+    "Lower.CI",
+    "lower.CI",
+    "upper",
+    "Upper",
+    "upper.CL",
+    "Upper.CL",
+    "Upper.CI",
+    "upper.CI"
+  )
+
+  if (!".label" %in% names(dat)) {
+
+    label_cols <- setdiff(
+      names(dat),
+      stat_cols
+    )
+
+    if (length(label_cols) == 0L) {
+
+      dat$.label <- seq_len(
+        nrow(dat)
+      )
+
+    } else {
+
+      dat$.label <- apply(
+        dat[label_cols],
+        1L,
+        paste,
+        collapse = ":"
+      )
+    }
+  }
+
+  dat$.label <- factor(
+    dat$.label,
+    levels = unique(dat$.label)
+  )
+
+
+  # ------------------------------------------------------------
+  # Default title
+  # ------------------------------------------------------------
+
+subtitle <- NULL
+
+if (is.null(main)) {
+
+  if (show_ci) {
+
+    alpha <- if (!is.null(x$.internal$alpha)) {
+      x$.internal$alpha
+    } else {
+      0.05
+    }
+
+    conf_level <- 100 * (1 - alpha)
+
+    main <- paste0(
+      format(conf_level, trim = TRUE),
+      "% confidence intervals"
+    )
+
+  } else {
+
+    main <- "Estimated relative effects"
+  }
+
+  subtitle <- paste0(
+    "Factor: ",
+    paste(term, collapse = ", ")
+  )
+}
+
+
+  # ------------------------------------------------------------
+  # Base plot
+  # ------------------------------------------------------------
+
+  p <- ggplot2::ggplot(
+    dat,
+    ggplot2::aes(
+      x = .data[[".label"]],
+      y = .data[[estimate_col]]
+    )
+  )
+
+
+  # ------------------------------------------------------------
+  # Reference line
+  # ------------------------------------------------------------
+
+  if (!is.null(reference)) {
+    p <- p +
+      ggplot2::geom_hline(
+        yintercept = reference,
+        linetype = ref.lty,
+        colour = ref.col
+      )
+  }
+
+
+  # ------------------------------------------------------------
+  # Estimates
+  #
+  # H0p: estimates + confidence intervals
+  # H0F: estimates only
+  # ------------------------------------------------------------
+
+  if (show_ci) {
+
+    p <- p +
+      ggplot2::geom_pointrange(
+        ggplot2::aes(
+          ymin = .data[[lower_col]],
+          ymax = .data[[upper_col]]
+        )
+      )
+
+  } else {
+
+    p <- p +
+      ggplot2::geom_point(
+        size = 3
+      )
+  }
+
+
+  # ------------------------------------------------------------
+  # Final formatting
+  # ------------------------------------------------------------
+
+  p +
+    ggplot2::facet_wrap(
+      ggplot2::vars(
+        .data[["term"]]
+      ),
+      scales = "free_x"
+    ) +
     ggplot2::labs(
       x = xlab,
       y = ylab,
-      title = main
+      title = main,
+      subtitle = subtitle
     ) +
-    ggplot2::coord_cartesian(ylim = c(0, 1)) +
-    ggplot2::theme_bw()
+    ggplot2::coord_cartesian(
+      ylim = c(0, 1)
+    ) +
+ggplot2::theme_bw(base_size = 16) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(size = 18),
+    plot.subtitle = ggplot2::element_text(size = 16),
+    axis.title = ggplot2::element_text(size = 16),
+    axis.text = ggplot2::element_text(size = 15),
+    legend.title = ggplot2::element_text(size = 15),
+    legend.text = ggplot2::element_text(size = 14)
+  )
+
 }
 
 .nparld_collect_factor_information <- function(factor.info, term) {
@@ -828,8 +1091,8 @@ print.nparld_test_table <- function(x, digits = 4, ...) {
 #' @param ref.line Optional vertical reference line. The default is \code{0}.
 #' @param ref.lty Line type for the reference line.
 #' @param ref.col Colour of the reference line.
-#' @param pch Plotting character.
-#' @param lwd Line width.
+#' @param point.size Numeric. Point size for the estimated contrast effects.
+#' @param line.width Numeric. Line width for the simultaneous confidence intervals.
 #' @param col Optional colors for confidence intervals and point estimates. If
 #'   \code{NULL}, intervals excluding zero are shown in red and intervals
 #'   including zero are shown in black.
@@ -861,80 +1124,152 @@ plot.nparld_mctp <- function(x,
                              ylab = "",
                              main = NULL,
                              ref.line = 0,
-                             ref.lty = 2,
-                             ref.col = "gray50",
-                             pch = 19,
-                             lwd = 2,
-                             col = NULL,
+                             ref.lty = "dashed",
+                             ref.col = "grey50",
+                             point.size = 3,
+                             line.width = 0.8,
                              ...) {
 
   if (is.null(x$Local.Results) || nrow(x$Local.Results) == 0L) {
-    stop("No local contrast results available.", call. = FALSE)
+    stop(
+      "No local contrast results available.",
+      call. = FALSE
+    )
   }
 
   res <- x$Local.Results
 
-  if (!all(c("Estimate", "lower", "upper") %in% names(res))) {
+  if (!all(c("Estimate", "Lower", "Upper") %in% names(res))) {
     stop(
       "No simultaneous confidence intervals available for this object.",
       call. = FALSE
     )
   }
 
-  est <- res$Estimate
-  lower <- res$lower
-  upper <- res$upper
-
   labs <- rownames(res)
+
   if (is.null(labs) || any(!nzchar(labs))) {
-    labs <- paste("C", seq_len(nrow(res)))
+    labs <- paste0(
+      "C",
+      seq_len(nrow(res))
+    )
   }
 
-  k <- length(est)
-  ypos <- rev(seq_len(k))
+  dat <- data.frame(
+    contrast = labs,
+    Estimate = res$Estimate,
+    Lower = res$Lower,
+    Upper = res$Upper,
+    stringsAsFactors = FALSE
+  )
 
-  if (is.null(col)) {
-    sig <- !(lower <= ref.line & upper >= ref.line)
-    col <- ifelse(sig, "red3", "black")
-  }
+  # Preserve the order shown in Local.Results
+  dat$contrast <- factor(
+    dat$contrast,
+    levels = rev(dat$contrast)
+  )
 
-  xr <- range(c(lower, upper, ref.line), na.rm = TRUE)
+  # CI excludes the null value
+  dat$significant <- !(
+    dat$Lower <= ref.line &
+      dat$Upper >= ref.line
+  )
 
+alpha <- x$alpha
+
+if (is.null(alpha) ||
+    length(alpha) != 1L ||
+    !is.finite(alpha)) {
+  alpha <- 0.05
+}
+
+conf_level <- 100 * (1 - alpha)
+
+  subtitle <- NULL
   if (is.null(main)) {
-    main <- if (!is.null(x$Factor)) {
-      paste("Simultaneous confidence intervals for", x$Factor)
-    } else {
-      "Simultaneous confidence intervals"
+    main <- paste0(
+      format(conf_level, trim = TRUE),
+      "% simultaneous confidence intervals"
+    )
+
+    if (!is.null(x$Factor) &&
+        !is.null(x$Contrast.Type)) {
+
+      subtitle <- paste0("Factor: ",
+        x$Factor,
+        " (",
+        x$Contrast.Type,
+        ")"
+      )
+
+    } else if (!is.null(x$Factor)) {
+
+      subtitle <- paste0(
+  "Factor: ",
+  x$Factor
+)
     }
   }
 
-  oldpar <- graphics::par(no.readonly = TRUE)
-  on.exit(graphics::par(oldpar), add = TRUE)
-
-  graphics::plot(
-    NA,
-    xlim = xr,
-    ylim = c(0.5, k + 0.5),
-    yaxt = "n",
-    ylab = ylab,
-    xlab = xlab,
-    main = main,
-    ...
-  )
-
-  graphics::axis(2, at = ypos, labels = labs, las = 1)
-  graphics::abline(v = ref.line, lty = ref.lty, col = ref.col)
-
-  graphics::segments(lower, ypos, upper, ypos, lwd = lwd, col = col)
-
-  cap <- 0.12
-  graphics::segments(lower, ypos - cap, lower, ypos + cap, lwd = lwd, col = col)
-  graphics::segments(upper, ypos - cap, upper, ypos + cap, lwd = lwd, col = col)
-
-  graphics::points(est, ypos, pch = pch, col = col)
-
-  invisible(x)
+  ggplot2::ggplot(
+    dat,
+    ggplot2::aes(
+      x = .data$Estimate,
+      y = .data$contrast
+    )
+  ) +
+    ggplot2::labs(
+      x = xlab,
+      y = ylab,
+      title = main,
+      subtitle = subtitle
+    ) +
+    ggplot2::geom_vline(
+      xintercept = ref.line,
+      linetype = ref.lty,
+      colour = ref.col
+    ) +
+    ggplot2::geom_errorbar(
+      ggplot2::aes(
+        xmin = .data$Lower,
+        xmax = .data$Upper,
+        colour = .data$significant
+      ),
+      width = 0.18,
+      linewidth = line.width,
+      orientation = "y"
+    ) +
+    ggplot2::geom_point(
+      ggplot2::aes(
+        colour = .data$significant
+      ),
+      size = point.size
+    ) +
+    ggplot2::scale_colour_manual(
+      values = c(
+        "FALSE" = "black",
+        "TRUE" = "red3"
+      ),
+      guide = "none"
+    ) +
+    ggplot2::theme_bw(base_size = 18) +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(
+        size = 18
+      ),
+      plot.subtitle = ggplot2::element_text(
+        size = 16
+      ),
+      axis.title = ggplot2::element_text(
+        size = 16
+      ),
+      axis.text = ggplot2::element_text(
+        size = 16
+      )
+    )
 }
+
+
 
 #' Print nparLD permutation test results
 #'
@@ -944,16 +1279,86 @@ plot.nparld_mctp <- function(x,
 #'
 #' @export
 print.nparld_permtest <- function(x, digits = 4, ...) {
-  cat("\nPermutation test\n")
-  cat("-------------------------------------------------\n")
-
-  if (!is.null(x$method)) {
-    cat("Method: ", x$method, "\n", sep = "")
-  }
-
   if (!is.null(x$table)) {
-    .nparld_print_table(x$table, digits = digits)
+    .nparld_print_table(
+      x$table,
+      digits = digits
+    )
   }
 
   invisible(x)
+}
+
+#' Plot the permutation distribution
+#'
+#' Displays the studentized permutation distribution together with
+#' the observed test statistic.
+#'
+#' @param x An object returned by \code{permTest()}.
+#' @param breaks Histogram breaks passed to \code{hist()}.
+#' @param ... Additional graphical arguments passed to \code{hist()}.
+#'
+#' @return Invisibly returns \code{NULL}.
+#'
+#' @export
+plot.nparld_permtest <- function(
+  x,
+  breaks = "FD",
+  ...
+) {
+
+  if (is.null(x$raw) ||
+      is.null(x$raw$perm.dist) ||
+      length(x$raw$perm.dist) == 0L) {
+    stop(
+      "No permutation distribution is available.",
+      call. = FALSE
+    )
+  }
+
+  perm <- x$raw$perm.dist
+  stat <- x$raw$statistic
+
+  if (is.null(stat) ||
+      length(stat) != 1L ||
+      !is.finite(stat)) {
+    stop(
+      "No observed test statistic is available.",
+      call. = FALSE
+    )
+  }
+
+  lim <- range(
+  c(
+    perm,
+    -abs(stat),
+    abs(stat)
+  ),
+  finite = TRUE
+)
+
+graphics::hist(
+  perm,
+  breaks = breaks,
+  xlim = lim,
+  main = "Studentized permutation distribution",
+  xlab = "Studentized test statistic",
+    ...
+  )
+
+  graphics::abline(
+    v = c(-abs(stat), abs(stat)),
+    lty = 2,
+    lwd = 2
+  )
+
+  graphics::legend(
+    "topright",
+    legend = "Observed |T|",
+    lty = 2,
+    lwd = 2,
+    bty = "n"
+  )
+
+  invisible(NULL)
 }

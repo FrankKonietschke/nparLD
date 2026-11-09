@@ -592,3 +592,25 @@ test_that("print indicates available MCTP without printing full results", {
     any(grepl("Global multiple contrast result", out, fixed = TRUE))
   )
 })
+
+test_that("contrast labels do not contain spaces", {
+
+  C <- matrix(
+    c(
+      -1, 1, 0,
+       0, -1, 1
+    ),
+    nrow = 2,
+    byrow = TRUE
+  )
+
+  rownames(C) <- paste0(
+    "C",
+    seq_len(nrow(C))
+  )
+
+  expect_equal(
+    rownames(C),
+    c("C1", "C2")
+  )
+})

@@ -10,11 +10,10 @@
   ylab = "",
   main = NULL,
   ref.line = 0,
-  ref.lty = 2,
-  ref.col = "gray50",
-  pch = 19,
-  lwd = 2,
-  col = NULL,
+  ref.lty = "dashed",
+  ref.col = "grey50",
+  point.size = 3,
+  line.width = 0.8,
   ...
 )
 }
@@ -33,15 +32,15 @@
 
 \item{ref.col}{Colour of the reference line.}
 
-\item{pch}{Plotting character.}
+\item{point.size}{Numeric. Point size for the estimated contrast effects.}
 
-\item{lwd}{Line width.}
+\item{line.width}{Numeric. Line width for the simultaneous confidence intervals.}
+
+\item{...}{Further graphical arguments.}
 
 \item{col}{Optional colors for confidence intervals and point estimates. If
 \code{NULL}, intervals excluding zero are shown in red and intervals
 including zero are shown in black.}
-
-\item{...}{Further graphical arguments.}
 }
 \description{
 Displays simultaneous confidence intervals for local contrasts from a
